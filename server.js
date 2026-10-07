@@ -95,11 +95,12 @@ function checkAdmin(req) {
   if (req._admin !== undefined) return req._admin;
   const key = String(req.headers["x-admin-key"] || "");
   if (!ADMIN_KEY || !key) return (req._admin = null);
-  const ipKey = bucketKey(req, "adminfail");
-  if (isLimited(ipKey, 10, ADMIN_FAIL_WINDOW) || isLimited("adminfail:global", 200, ADMIN_FAIL_WINDOW)) fail(429, "密钥错误次数过多，请 10 分钟后再试");
   let who = null;
-  if (safeEqual(key, ADMIN_KEY)) who = OWNER;
-  else if (key.length <= 128) {
+  if (safeEqual(key, ADMIN_KEY)) return (req._admin = OWNER);
+  // 数据存储不可用时无法核对协作管理员，返回 503 而不是“密钥错误”
+  if (storeError || !store) fail(503, "数据存储暂时不可用，请稍后再试");
+  const ipKey = bucketKey(req, "adminfail");
+  if (key.length <= 128) {
     const h = Buffer.from(sha256(key), "hex");
     for (const a of state.admins || []) {
       if (crypto.timingSafeEqual(h, Buffer.from(a.keyHash, "hex"))) {
@@ -109,8 +110,12 @@ function checkAdmin(req) {
     }
   }
   if (!who) {
-    hit(ipKey, ADMIN_FAIL_WINDOW);
-    hit("adminfail:global", ADMIN_FAIL_WINDOW);
+    if (isLimited(ipKey, 10, ADMIN_FAIL_WINDOW)) fail(429, "密钥错误次数过多，请 10 分钟后再试");
+    const seen = `${ipKey}:${sha256(key).slice(0, 16)}`;
+    if (!isLimited(seen, 1, ADMIN_FAIL_WINDOW)) {
+      hit(seen, ADMIN_FAIL_WINDOW);
+      hit(ipKey, ADMIN_FAIL_WINDOW);
+    }
   }
   return (req._admin = who);
 }
@@ -139,6 +144,14 @@ function mutate(fn, audit) {
       const target = out && out[REPLACE] ? out[REPLACE] : draft;
       const stamp = new Date().toISOString();
       const log = typeof audit === "function" ? audit(out && out[REPLACE] ? out.result : out, draft) : audit;
+      if (log && log.who && log.who.role === "admin") {
+        if (!(draft.admins || []).some(a => a.id === log.who.id)) fail(401, "管理员密钥不正确，或已被撤销");
+        const rk = `adminwrite:${log.who.id}`;
+        if (isLimited(rk, 300, 600000)) fail(429, "操作太频繁了，请稍后再试");
+        hit(rk, 600000);
+      }
+      const strip = x => JSON.stringify({ ...x, auditLog: undefined });
+      if (strip(L.normalizeState(target)) === strip(state)) return out && out[REPLACE] ? out.result : out;
       if (log && log.who) target.auditLog = [...(target.auditLog || []), auditEntry(log.who, log.action, log.detail, stamp)];
       const next = L.normalizeState(target);
       const nextRevision = revision + 1;
@@ -590,6 +603,7 @@ async function deleteGame(id, who) {
 async function addAdmin(body, who) {
   const name = L.cleanLine(body?.name, 20);
   if (!name) fail(400, "请填写管理员的名字");
+  if (["所有者", "owner", "管理员", "admin"].includes(L.nameKey(name))) fail(400, "这个名字是保留名，请换一个");
   const key = `kz_${crypto.randomBytes(24).toString("base64url")}`;
   const result = await mutate(draft => {
     if ((draft.admins || []).length >= L.MAX_ADMINS) fail(409, `最多 ${L.MAX_ADMINS} 位协作管理员`);

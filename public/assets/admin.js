@@ -608,7 +608,10 @@
       else showLogin(error.message);
     }
     setInterval(() => {
-      if (document.visibilityState === "visible" && key && !document.querySelector("#modal") && tab !== "sessions" && tab !== "data") load().catch(() => {});
+      if (document.visibilityState === "visible" && key && !document.querySelector("#modal") && tab !== "sessions" && tab !== "data")
+        load().catch(e => {
+          if (e.status === 401 || e.status === 403) logout("密钥已失效或已被撤销，请重新登录");
+        });
     }, 30000);
   });
 })();
