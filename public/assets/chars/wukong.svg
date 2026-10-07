@@ -271,7 +271,7 @@
   <!-- ===== 金箍棒: resting across the shoulders (behind the neck) ===== -->
   <g transform="translate(14 112) rotate(-7.524)">
     <!-- energy bloom -->
-    <rect class="wukong-fx wukong-sglow" x="-2" y="-5.5" width="217.8" height="11" rx="5.5" fill="#ffc93c" opacity=".55" filter="url(#wukong-f-bloom)"/>
+    <rect class="wukong-fx wukong-sglow" x="2" y="-5.5" width="209.8" height="11" rx="5.5" fill="#ffc93c" opacity=".55" filter="url(#wukong-f-bloom)"/>
     <!-- dark iron shaft -->
     <rect x="16" y="-3.3" width="181.8" height="6.6" fill="url(#wukong-g-iron)"/>
     <!-- energy coil wrapping the shaft -->

@@ -52,6 +52,7 @@
 .gc-topbar .nav a.active { color: var(--gold-soft); background: rgba(232, 194, 122, 0.12); }
 .gc-topbar .nav .nav-cta { background: var(--red); color: #fff; box-shadow: 0 0 18px rgba(232, 67, 46, 0.45); }
 .gc-topbar .nav .nav-cta:hover, .gc-topbar .nav .nav-cta.active { background: #f0563f; color: #fff; }
+.gc-topbar .nav .nav-admin { color: var(--on-dark-2); border-color: rgba(232, 194, 122, 0.25); }
 
 /* ---------- 布局 ---------- */
 .gc-main { position: relative; z-index: 2; }
