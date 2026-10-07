@@ -66,8 +66,14 @@
     $("#login").hidden = true;
     $("#app").hidden = false;
     $("#logout").hidden = false;
+    const me = $("#whoami");
+    if (me && data.me) {
+      me.hidden = false;
+      me.textContent = data.me.role === "owner" ? "所有者" : `管理员 · ${data.me.name}`;
+    }
     render();
   }
+  const isOwner = () => data?.me?.role === "owner";
 
   // ---------- 通用 ----------
   function sessionLabel(s) {
@@ -365,12 +371,55 @@
       <section class="section-block"><h2>备份与导入</h2>
         <div class="ecard">
           <div class="toolbar"><button class="btn btn-sm" type="button" data-act="export-json">导出完整备份（JSON）</button><button class="btn btn-sm" type="button" data-act="csv-all">导出全部报名（CSV / Excel）</button>
-          <label class="btn btn-sm">导入备份…<input type="file" id="importFile" accept="application/json,.json" hidden></label></div>
-          <p class="hint">支持导入本系统导出的备份，也支持旧版「开桌」网站导出的备份（会合并进现有数据，同一场次重名的报名会跳过）。</p>
+          ${isOwner() ? `<label class="btn btn-sm">导入备份…<input type="file" id="importFile" accept="application/json,.json" hidden></label>` : ""}</div>
+          <p class="hint">${isOwner() ? "支持导入本系统导出的备份，也支持旧版「开桌」网站导出的备份（会合并进现有数据，同一场次重名的报名会跳过）。" : "导入备份和恢复历史版本只有所有者可以操作。"}</p>
           <h3 class="label section-block">自动历史版本</h3><div class="backup-list" id="backupList"><p class="hint">加载中…</p></div>
         </div>
+      </section>
+      ${isOwner() ? adminsSection() : ""}
+      <section class="section-block"><h2>操作记录</h2>
+        <div class="ecard">${auditHtml()}</div>
       </section>`;
     loadBackups();
+  }
+  function adminsSection() {
+    const list = data.admins || [];
+    return `<section class="section-block"><h2>协作管理员</h2>
+      <div class="ecard">
+        <p class="hint">给帮忙管理的朋友单独发一把密钥：他能管名单、签到、场次、桌游和导出；只有你（所有者）能添加 / 撤销管理员、导入备份和恢复历史版本。撤销后对方的密钥立刻失效。</p>
+        <div class="cards-list section-block">${
+          list.length
+            ? list.map(a => `<div class="backup-row"><span><b>${esc(a.name)}</b> <span class="mono">· 添加于 ${esc(fmtTime(a.createdAt))}</span></span><button class="btn btn-xs btn-danger" type="button" data-revoke="${esc(a.id)}" data-name="${esc(a.name)}">撤销</button></div>`).join("")
+            : `<p class="hint">还没有协作管理员。</p>`
+        }</div>
+        <form class="toolbar section-block" id="addAdminForm"><input class="input" name="name" maxlength="20" placeholder="朋友的名字，如：小王" required><button class="btn btn-sm btn-primary" type="submit">＋ 添加管理员</button></form>
+      </div></section>`;
+  }
+  function auditHtml() {
+    const log = data.auditLog || [];
+    if (!log.length) return `<p class="hint">还没有记录。之后每次管理操作（代报名、删除、签到、改场次、改桌游、导入、恢复、增减管理员）都会记在这里。</p>`;
+    return `<div class="backup-list">${log.map(e => `<div class="backup-row"><span><span class="mono">${esc(fmtTime(e.at))}</span> · <b>${esc(e.actor)}</b> · ${esc(e.action)}</span><span class="hint">${esc(e.detail)}</span></div>`).join("")}</div>`;
+  }
+  function showNewKey(name, key) {
+    const m = B.openModal(`<h2 id="modalTitle" class="modal-title">${esc(name)} 的管理员密钥</h2>
+      <p class="modal-text">这把密钥<strong>只显示这一次</strong>，关闭后无法再查看（忘了就撤销重新添加）。请复制后<strong>私聊</strong>发给对方，不要发到群里。</p>
+      <input class="input mono" id="newKey" readonly value="${esc(key)}" style="margin-top:14px">
+      <p class="modal-text">后台地址：${esc(location.origin)}/admin</p>
+      <div class="modal-actions"><button class="btn btn-ghost" type="button" data-close>我已保存</button><button class="btn btn-primary" type="button" id="copyKey">复制密钥和后台地址</button></div>`);
+    const input = $("#newKey", m);
+    input.addEventListener("focus", () => input.select());
+    $("#copyKey", m).addEventListener("click", async () => {
+      const text = `开桌桌游社管理后台：${location.origin}/admin
+你的管理员密钥：${key}`;
+      try {
+        await navigator.clipboard.writeText(text);
+        B.toast("已复制，可以私聊发给对方了", "ok");
+      } catch {
+        input.focus();
+        input.select();
+        B.toast("自动复制失败，请长按 / 全选输入框手动复制");
+      }
+    });
   }
   async function loadBackups() {
     try {
@@ -378,7 +427,7 @@
       const el = $("#backupList");
       if (!el) return;
       el.innerHTML = res.backups.length
-        ? res.backups.map(b => `<div class="backup-row"><span><span class="mono">v${b.revision}</span> · ${esc(fmtTime(b.updatedAt))} · ${b.games} 款游戏 · ${b.signups} 条报名</span>${b.revision === data.revision ? `<span class="tag">当前</span>` : `<button class="btn btn-xs" type="button" data-restore="${b.revision}">恢复到此版本</button>`}</div>`).join("")
+        ? res.backups.map(b => `<div class="backup-row"><span><span class="mono">v${b.revision}</span> · ${esc(fmtTime(b.updatedAt))} · ${b.games} 款游戏 · ${b.signups} 条报名</span>${b.revision === data.revision ? `<span class="tag">当前</span>` : isOwner() ? `<button class="btn btn-xs" type="button" data-restore="${b.revision}">恢复到此版本</button>` : ""}</div>`).join("")
         : `<p class="hint">暂无</p>`;
     } catch (error) {
       const el = $("#backupList");
@@ -482,6 +531,11 @@
         const exists = data.allSessions.find(s => s.id === date);
         if (exists && !exists.extra) return B.toast("这一天已经有常规场次了，直接在上面修改即可", "error");
         await guard(() => call(`/api/admin/sessions/${encodeURIComponent(date)}`, { method: "PUT", body: { extra: true, time: f.get("time"), endTime: f.get("endTime"), location: f.get("location"), title: f.get("title") } }), "已加开场次");
+      } else if (form.id === "addAdminForm") {
+        e.preventDefault();
+        const name = new FormData(form).get("name");
+        const res = await guard(() => call("/api/admin/admins", { method: "POST", body: { name } }), "已添加");
+        if (res && res.admin) showNewKey(res.admin.name, res.admin.key);
       } else if (form.id === "settingsForm") {
         e.preventDefault();
         const f = new FormData(form);
@@ -526,6 +580,8 @@
         if (await B.confirmDialog({ title: `删除「${g.name}」？`, text: "删除后无法恢复（可从历史版本回滚）。只有从未被报名过的游戏才能删除，否则请用“停用”。", ok: "删除", danger: true })) await guard(() => call(`/api/admin/games/${encodeURIComponent(g.id)}`, { method: "DELETE" }), "已删除");
       } else if (d.delSession) {
         if (await B.confirmDialog({ title: "删除这个加场？", text: B.fmtDate(d.delSession), ok: "删除", danger: true })) await guard(() => call(`/api/admin/sessions/${encodeURIComponent(d.delSession)}`, { method: "DELETE" }), "已删除");
+      } else if (d.revoke) {
+        if (await B.confirmDialog({ title: `撤销「${d.name}」的管理员权限？`, text: "撤销后对方的密钥立刻失效。以后想再给他权限，重新添加会生成一把新密钥。", ok: "撤销", danger: true })) await guard(() => call(`/api/admin/admins/${encodeURIComponent(d.revoke)}`, { method: "DELETE" }), "已撤销");
       } else if (d.restore) {
         if (await B.confirmDialog({ title: `恢复到 v${d.restore}？`, text: "当前数据会被这个历史版本替换（替换前的版本也会保留在历史里，可以再恢复回来）。", ok: "恢复", danger: true })) {
           const res = await guard(() => call(`/api/admin/backups/${d.restore}/restore`, { method: "POST" }), "已恢复");

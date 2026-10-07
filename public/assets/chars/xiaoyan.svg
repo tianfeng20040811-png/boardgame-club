@@ -135,6 +135,8 @@
     @media (prefers-reduced-motion: reduce){.xiaoyan-fx,.xiaoyan-fx *{animation:none !important}}
   </style>
 
+  <!-- lineup harmonisation: whole figure scaled 4% about the feet (120,388) so his head line matches the other heroes -->
+  <g transform="matrix(1.04 0 0 1.04 -4.8 -15.52)">
   <g class="xiaoyan-fx">
 
   <!-- ================= GROUND ================= -->
@@ -342,8 +344,8 @@
 
   <!-- ================= 青莲地心火 LOTUS FLAME ================= -->
   <!-- orbiting fire ring: back half (behind the lotus) -->
-  <g transform="rotate(-14 55 114)" filter="url(#xiaoyan-glow)" fill="none" stroke="url(#xiaoyan-g-orbit)" stroke-linecap="round">
-    <path class="xiaoyan-orbit" d="M25 114 A30 8 0 0 1 85 114" stroke-width="1" opacity=".55"/>
+  <g transform="rotate(-14 55 114)" filter="url(#xiaoyan-glow)" fill="none" stroke="url(#xiaoyan-g-orbit)" stroke-linecap="round" opacity=".55">
+    <path class="xiaoyan-orbit" d="M25 114 A30 8 0 0 1 85 114" stroke-width="1"/>
   </g>
   <g filter="url(#xiaoyan-glow)">
     <g transform="translate(55 128)">
@@ -382,7 +384,7 @@
 
   <!-- anamorphic lens flare through the flame: the poster "hot spot" -->
   <g class="xiaoyan-flare">
-    <ellipse cx="55" cy="114" rx="47" ry="1.8" fill="url(#xiaoyan-g-flare)"/>
+    <ellipse cx="55" cy="114" rx="44" ry="1.8" fill="url(#xiaoyan-g-flare)"/>
     <ellipse cx="55" cy="114" rx="20" ry=".8" fill="#ffffff" opacity=".9"/>
     <ellipse cx="55" cy="114" rx="1" ry="15" fill="url(#xiaoyan-g-flare)"/>
   </g>
@@ -414,5 +416,6 @@
     <path class="xiaoyan-ember" style="animation-delay:-2.3s" d="M161 338.2 L160.6 340.3 L159 341.8 L159.4 339.7 Z"/>
   </g>
 
+  </g>
   </g>
 </svg>

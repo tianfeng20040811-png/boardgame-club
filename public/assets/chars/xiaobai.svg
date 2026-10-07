@@ -4,9 +4,9 @@
     <!-- ===== cloth / skin / hair tones (deep shadow -> dark jade; white silk read through its glowing edges) ===== -->
     <linearGradient id="xiaobai-skirt" x1="0" y1="0" x2="1" y2="0">
       <stop offset="0" stop-color="#a9cbbf"/>
-      <stop offset=".14" stop-color="#557a6f"/>
-      <stop offset=".5" stop-color="#2a3d38"/>
-      <stop offset=".82" stop-color="#47726a"/>
+      <stop offset=".14" stop-color="#456459"/>
+      <stop offset=".5" stop-color="#22322e"/>
+      <stop offset=".82" stop-color="#3a5f57"/>
       <stop offset="1" stop-color="#93cdbb"/>
     </linearGradient>
     <linearGradient id="xiaobai-vfade" x1="0" y1="0" x2="0" y2="1">
@@ -21,20 +21,20 @@
     </linearGradient>
     <linearGradient id="xiaobai-cloth" x1="0" y1="0" x2="1" y2=".25">
       <stop offset="0" stop-color="#a3c8bb"/>
-      <stop offset=".3" stop-color="#557a6f"/>
-      <stop offset=".75" stop-color="#2c403a"/>
-      <stop offset="1" stop-color="#4f7e71"/>
+      <stop offset=".3" stop-color="#456459"/>
+      <stop offset=".75" stop-color="#243530"/>
+      <stop offset="1" stop-color="#41685d"/>
     </linearGradient>
     <linearGradient id="xiaobai-sleeve" gradientUnits="userSpaceOnUse" x1="138" y1="0" x2="230" y2="0">
-      <stop offset="0" stop-color="#2b3e38"/>
-      <stop offset=".45" stop-color="#3b6157"/>
-      <stop offset=".75" stop-color="#5e9e8b" stop-opacity=".9"/>
+      <stop offset="0" stop-color="#23332e"/>
+      <stop offset=".45" stop-color="#314f47"/>
+      <stop offset=".75" stop-color="#4f8574" stop-opacity=".9"/>
       <stop offset="1" stop-color="#c6f9e6" stop-opacity=".6"/>
     </linearGradient>
     <linearGradient id="xiaobai-farsleeve" gradientUnits="userSpaceOnUse" x1="52" y1="0" x2="106" y2="0">
       <stop offset="0" stop-color="#8fc6b4" stop-opacity=".92"/>
-      <stop offset=".35" stop-color="#466a60"/>
-      <stop offset="1" stop-color="#25352f"/>
+      <stop offset=".35" stop-color="#3a584f"/>
+      <stop offset="1" stop-color="#1e2c27"/>
     </linearGradient>
     <linearGradient id="xiaobai-skin" x1="0" y1="0" x2="1" y2=".6">
       <stop offset="0" stop-color="#d9e5e0"/>
@@ -172,8 +172,8 @@
 
   <!-- ================= 1. backlight bloom behind head and shoulders ================= -->
   <ellipse class="xiaobai-fx xiaobai-breathe" cx="124" cy="122" rx="96" ry="112" fill="url(#xiaobai-back)"/>
-  <!-- pale moon disc behind her head: dark hair reads as a crisp silhouette against it -->
-  <circle cx="140" cy="72" r="34" fill="#e4fff4" fill-opacity=".1" stroke="#c8ffe8" stroke-opacity=".12" stroke-width=".5"/>
+  <!-- soft moonglow behind her head (edge-less, so it does not repeat Gainie's moon disc): dark hair silhouettes against it -->
+  <circle cx="140" cy="72" r="38" fill="url(#xiaobai-back)" opacity=".45"/>
 
   <!-- ================= 2. ground glow + contact shadow ================= -->
   <ellipse cx="122" cy="386" rx="98" ry="8" fill="url(#xiaobai-groundg)"/>
@@ -186,11 +186,11 @@
 
   <!-- ================= 3. spirit snake — passes BEHIND her (B: low back coil, N: neck + head) ================= -->
   <g id="xiaobai-snake-back">
-    <g filter="url(#xiaobai-soft)" fill="#5fffc0" class="xiaobai-fx xiaobai-pulse">
+    <g opacity=".8"><g filter="url(#xiaobai-soft)" fill="#5fffc0" class="xiaobai-fx xiaobai-pulse">
       <use href="#xiaobai-sB"/><use href="#xiaobai-sN"/><use href="#xiaobai-shead" transform="translate(191 28) rotate(-15)"/>
-    </g>
-    <g fill="#5fffc0" opacity=".42"><use href="#xiaobai-sB"/><use href="#xiaobai-sN"/></g>
-    <g fill="#e4fff5" opacity=".42"><use href="#xiaobai-sBi"/><use href="#xiaobai-sNi"/></g>
+    </g></g>
+    <g fill="#5fffc0" opacity=".34"><use href="#xiaobai-sB"/><use href="#xiaobai-sN"/></g>
+    <g fill="#e4fff5" opacity=".36"><use href="#xiaobai-sBi"/><use href="#xiaobai-sNi"/></g>
     <use href="#xiaobai-sNs" fill="none" stroke="#f2fff9" stroke-width=".5" opacity=".5"/>
     <g fill="#f2fff9" filter="url(#xiaobai-glow)" opacity=".8">
       <use href="#xiaobai-sBr" class="xiaobai-fx xiaobai-wave xiaobai-wB"/>
@@ -345,11 +345,11 @@
 
   <!-- ================= 11. spirit snake — passes IN FRONT (A: tail coil at the hem, C: coil around her hips) ================= -->
   <g id="xiaobai-snake-front">
-    <g filter="url(#xiaobai-soft)" fill="#5fffc0" class="xiaobai-fx xiaobai-pulse">
+    <g opacity=".8"><g filter="url(#xiaobai-soft)" fill="#5fffc0" class="xiaobai-fx xiaobai-pulse">
       <use href="#xiaobai-sA"/><use href="#xiaobai-sC"/>
-    </g>
-    <g fill="#5fffc0" opacity=".42"><use href="#xiaobai-sA"/><use href="#xiaobai-sC"/></g>
-    <g fill="#e4fff5" opacity=".42"><use href="#xiaobai-sAi"/><use href="#xiaobai-sCi"/></g>
+    </g></g>
+    <g fill="#5fffc0" opacity=".34"><use href="#xiaobai-sA"/><use href="#xiaobai-sC"/></g>
+    <g fill="#e4fff5" opacity=".36"><use href="#xiaobai-sAi"/><use href="#xiaobai-sCi"/></g>
     <g fill="none" stroke="#f2fff9" stroke-width=".5" opacity=".5"><use href="#xiaobai-sAs"/><use href="#xiaobai-sCs"/></g>
     <g fill="#f2fff9" filter="url(#xiaobai-glow)" opacity=".8">
       <use href="#xiaobai-sAr" class="xiaobai-fx xiaobai-wave xiaobai-wA"/>

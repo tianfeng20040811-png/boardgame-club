@@ -89,36 +89,59 @@ setInterval(() => {
 
 // 管理员认证：每个请求只判定一次；只统计“密钥错误”的次数（按 IP 和全局），超限后连正确密钥也先拒绝一段时间
 const ADMIN_FAIL_WINDOW = 600000;
+// 两种身份：所有者（环境变量 ADMIN_KEY）和协作管理员（所有者在后台添加，各自一把密钥，数据库里只存哈希）
+const OWNER = Object.freeze({ role: "owner", id: "owner", name: "所有者" });
 function checkAdmin(req) {
   if (req._admin !== undefined) return req._admin;
-  const key = req.headers["x-admin-key"];
-  if (!ADMIN_KEY || !key) return (req._admin = false);
+  const key = String(req.headers["x-admin-key"] || "");
+  if (!ADMIN_KEY || !key) return (req._admin = null);
   const ipKey = bucketKey(req, "adminfail");
   if (isLimited(ipKey, 10, ADMIN_FAIL_WINDOW) || isLimited("adminfail:global", 200, ADMIN_FAIL_WINDOW)) fail(429, "密钥错误次数过多，请 10 分钟后再试");
-  const ok = safeEqual(key, ADMIN_KEY);
-  if (!ok) {
+  let who = null;
+  if (safeEqual(key, ADMIN_KEY)) who = OWNER;
+  else if (key.length <= 128) {
+    const h = Buffer.from(sha256(key), "hex");
+    for (const a of state.admins || []) {
+      if (crypto.timingSafeEqual(h, Buffer.from(a.keyHash, "hex"))) {
+        who = { role: "admin", id: a.id, name: a.name };
+        break;
+      }
+    }
+  }
+  if (!who) {
     hit(ipKey, ADMIN_FAIL_WINDOW);
     hit("adminfail:global", ADMIN_FAIL_WINDOW);
   }
-  return (req._admin = ok);
+  return (req._admin = who);
 }
-const isAdminRequest = checkAdmin;
-function requireAdmin(req) {
+const isAdminRequest = req => Boolean(checkAdmin(req));
+function requireAdmin(req, { owner = false } = {}) {
   if (!ADMIN_KEY) fail(403, "服务器未设置管理员密钥（环境变量 ADMIN_KEY），管理功能已关闭");
-  if (!checkAdmin(req)) fail(401, "管理员密钥不正确");
+  const who = checkAdmin(req);
+  if (!who) fail(401, "管理员密钥不正确，或已被撤销");
+  if (owner && who.role !== "owner") fail(403, "只有所有者可以进行这个操作");
+  return who;
+}
+// 操作记录：随同一次写入一起保存（要么都成功，要么都不写）
+function auditEntry(who, action, detail, at) {
+  return { at, actor: who.role === "owner" ? "所有者" : who.name, action, detail: String(detail || "").slice(0, 160) };
 }
 
 // ---------- 状态读写（串行化；数据库里版本号对不上时说明有别的实例写过，重新加载后再试一次） ----------
 let chain = Promise.resolve();
-function mutate(fn) {
+// audit：{ who, action, detail } 或 (结果, draft) => 同样的对象；who 为空（普通访客）时不记录
+function mutate(fn, audit) {
   const run = chain.then(async () => {
     if (storeError || !store) fail(503, "数据存储暂时不可用，请稍后再试");
     for (let attempt = 0; attempt < 6; attempt++) {
       const draft = clone(state);
       const out = await fn(draft);
-      const next = L.normalizeState(out && out[REPLACE] ? out[REPLACE] : draft);
-      const nextRevision = revision + 1;
+      const target = out && out[REPLACE] ? out[REPLACE] : draft;
       const stamp = new Date().toISOString();
+      const log = typeof audit === "function" ? audit(out && out[REPLACE] ? out.result : out, draft) : audit;
+      if (log && log.who) target.auditLog = [...(target.auditLog || []), auditEntry(log.who, log.action, log.detail, stamp)];
+      const next = L.normalizeState(target);
+      const nextRevision = revision + 1;
       try {
         await store.save(next, nextRevision, stamp, revision);
       } catch (error) {
@@ -263,7 +286,7 @@ function publicSnapshot() {
     readOnly: Boolean(storeError),
   };
 }
-function adminSnapshot() {
+function adminSnapshot(who) {
   const now = nowMs();
   const keys = new Set([...Object.keys(state.sessions), ...L.upcomingKeys(state, now)]);
   return {
@@ -272,6 +295,9 @@ function adminSnapshot() {
     storage: store ? store.kind : "none",
     storeError,
     allSessions: [...keys].sort().reverse().map(key => L.sessionView(state, key, now, { admin: true })),
+    me: who ? { role: who.role, name: who.role === "owner" ? "所有者" : who.name } : null,
+    admins: who && who.role === "owner" ? (state.admins || []).map(({ keyHash, ...a }) => a) : [],
+    auditLog: (state.auditLog || []).slice(-200).reverse(),
   };
 }
 
@@ -309,8 +335,10 @@ const CLIENT_ID_RE = /^s[0-9a-f]{12}$/;
 const CLIENT_TOKEN_RE = /^[A-Za-z0-9_-]{22,64}$/;
 const SIGNUP_WINDOW = 600000;
 
+const gameNameOf = id => state.games.find(g => g.id === id)?.name || id || "";
 async function createSignup(req, body) {
-  const admin = isAdminRequest(req);
+  const who = checkAdmin(req);
+  const admin = Boolean(who);
   // 只把“成功的报名”计入每 IP 配额（校园网很多人共用一个出口 IP）；失败请求另有更宽的上限防刷
   const okKey = bucketKey(req, "signup-ok");
   const failKey = bucketKey(req, "signup-fail");
@@ -349,8 +377,10 @@ async function createSignup(req, body) {
       entry.id = clientToken ? clientId : `s${crypto.randomBytes(6).toString("hex")}`;
       entry.tokenHash = sha256(token);
       sess.signups.push(entry);
-      return { id: entry.id, token, sessionId: key };
-    });
+      return { id: entry.id, token, sessionId: key, name: entry.name, gameId: entry.gameId };
+    }, who ? r => (r.repeat ? null : { who, action: "代报名", detail: `${r.sessionId} ${r.name} · ${gameNameOf(r.gameId)}` }) : null);
+    delete result.name;
+    delete result.gameId;
     if (!admin && !result.repeat) hit(okKey, SIGNUP_WINDOW);
     return result;
   } catch (error) {
@@ -367,8 +397,10 @@ function authorizeSignup(req, signup) {
 }
 
 async function updateSignup(req, id, body) {
-  if (!isAdminRequest(req)) rateLimit(req, "edit", 60, SIGNUP_WINDOW);
-  return mutate(draft => {
+  const who = checkAdmin(req);
+  if (!who) rateLimit(req, "edit", 60, SIGNUP_WINDOW);
+  let logged = null;
+  const result = await mutate(draft => {
     const found = findSignup(draft, id);
     if (!found) fail(404, "找不到这条报名，可能已被取消");
     const admin = authorizeSignup(req, found.signup);
@@ -389,12 +421,17 @@ async function updateSignup(req, id, body) {
     if (next.altGameId !== prev.altGameId) next.altAt = iso;
     next.updatedAt = iso;
     found.sess.signups[found.index] = next;
+    const onlyCheckin = Object.keys(body).every(k => k === "checkedIn");
+    logged = onlyCheckin ? { action: next.checkedIn ? "签到" : "取消签到", detail: `${found.key} ${next.name}` } : { action: "修改报名", detail: `${found.key} ${prev.name}${prev.name !== next.name ? ` → ${next.name}` : ""} · ${gameNameOf(next.gameId)}` };
     return { id, sessionId: found.key };
-  });
+  }, who ? () => logged && { who, ...logged } : null);
+  return result;
 }
 
 async function deleteSignup(req, id) {
-  if (!isAdminRequest(req)) rateLimit(req, "edit", 60, SIGNUP_WINDOW);
+  const who = checkAdmin(req);
+  if (!who) rateLimit(req, "edit", 60, SIGNUP_WINDOW);
+  let detail = "";
   return mutate(draft => {
     const found = findSignup(draft, id);
     if (!found) fail(404, "找不到这条报名，可能已被取消");
@@ -402,13 +439,14 @@ async function deleteSignup(req, id) {
     const timing = L.sessionTiming(found.key, found.sess, draft.settings);
     const status = L.sessionStatus(found.sess, timing, nowMs());
     if (!admin && status !== "open") fail(409, `${statusMessage(status, found.sess.location || draft.settings.location)}，如需取消请联系组织者`);
+    detail = `${found.key} ${found.signup.name} · ${gameNameOf(found.signup.gameId)}`;
     found.sess.signups.splice(found.index, 1);
     return { id, sessionId: found.key };
-  });
+  }, who ? () => ({ who, action: "删除报名", detail }) : null);
 }
 
 // ---------- 管理：场次 / 设置 / 桌游 ----------
-async function updateSession(key, body) {
+async function updateSession(key, body, who) {
   if (!L.isDateKey(key)) fail(400, "日期格式应为 YYYY-MM-DD");
   return mutate(draft => {
     const gameIds = new Set(draft.games.map(g => g.id));
@@ -421,17 +459,17 @@ async function updateSession(key, body) {
     if ("endTime" in body && body.endTime && L.parseHM(body.endTime) === null) fail(400, "结束时间格式应为 HH:MM");
     draft.sessions[key] = L.normalizeSession(key, merged, gameIds);
     return { sessionId: key };
-  });
+  }, { who, action: body.extra ? "加开场次" : body.status === "cancelled" ? "停办场次" : "修改场次", detail: key });
 }
 
-async function deleteSession(key) {
+async function deleteSession(key, who) {
   return mutate(draft => {
     const sess = draft.sessions[key];
     if (!sess) fail(404, "没有这个场次的记录");
     if (sess.signups.length) fail(409, "这个场次已有报名记录，不能删除。可以改为“停办”");
     delete draft.sessions[key];
     return { sessionId: key };
-  });
+  }, { who, action: "删除加场", detail: key });
 }
 
 const BILI_HEADERS = { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/124 Safari/537.36", Referer: "https://www.bilibili.com" };
@@ -503,18 +541,18 @@ async function prepareGameBody(body, existing) {
   return out;
 }
 
-async function createGame(body) {
+async function createGame(body, who) {
   const prepared = await prepareGameBody(body, null);
   return mutate(draft => {
     const taken = new Set(draft.games.map(g => g.id));
     delete prepared.id;
     const game = L.normalizeGame(prepared, draft.games.length, taken);
     draft.games.push(game);
-    return { id: game.id };
-  });
+    return { id: game.id, name: game.name };
+  }, r => ({ who, action: "新增桌游", detail: r.name }));
 }
 
-async function updateGame(id, body) {
+async function updateGame(id, body, who) {
   const existing = state.games.find(g => g.id === id);
   if (!existing) fail(404, "找不到这款桌游");
   const prepared = await prepareGameBody(body, existing);
@@ -522,17 +560,22 @@ async function updateGame(id, body) {
     const index = draft.games.findIndex(g => g.id === id);
     if (index < 0) fail(404, "找不到这款桌游");
     const taken = new Set(draft.games.filter(g => g.id !== id).map(g => g.id));
+    const before = draft.games[index];
     draft.games[index] = L.normalizeGame({ ...prepared, id }, index, taken);
-    return { id };
-  });
+    const after = draft.games[index];
+    const what = Object.keys(body).length === 1 && "active" in body ? (after.active ? "启用桌游" : "停用桌游") : "修改桌游";
+    return { id, name: after.name, what, before: before.name };
+  }, r => ({ who, action: r.what, detail: r.before !== r.name ? `${r.before} → ${r.name}` : r.name }));
 }
 
-async function deleteGame(id) {
+async function deleteGame(id, who) {
+  let name = id;
   return mutate(draft => {
     const index = draft.games.findIndex(g => g.id === id);
     if (index < 0) fail(404, "找不到这款桌游");
     const used = Object.values(draft.sessions).some(s => s.signups.some(p => p.gameId === id || p.altGameId === id));
     if (used) fail(409, "已有报名记录用到这款游戏，不能删除。可以把它设为“暂不开放”");
+    name = draft.games[index].name;
     draft.games.splice(index, 1);
     for (const s of Object.values(draft.sessions)) {
       s.gameIds = s.gameIds.filter(g => g !== id);
@@ -540,34 +583,62 @@ async function deleteGame(id) {
       delete s.copies[id];
     }
     return { id };
-  });
+  }, () => ({ who, action: "删除桌游", detail: name }));
+}
+
+// ---------- 协作管理员（仅所有者） ----------
+async function addAdmin(body, who) {
+  const name = L.cleanLine(body?.name, 20);
+  if (!name) fail(400, "请填写管理员的名字");
+  const key = `kz_${crypto.randomBytes(24).toString("base64url")}`;
+  const result = await mutate(draft => {
+    if ((draft.admins || []).length >= L.MAX_ADMINS) fail(409, `最多 ${L.MAX_ADMINS} 位协作管理员`);
+    if ((draft.admins || []).some(a => L.nameKey(a.name) === L.nameKey(name))) fail(409, `已经有叫「${name}」的管理员了`);
+    const admin = { id: `a${crypto.randomBytes(4).toString("hex")}`, name, keyHash: sha256(key), createdAt: new Date().toISOString() };
+    draft.admins = [...(draft.admins || []), admin];
+    return { id: admin.id, name };
+  }, { who, action: "添加管理员", detail: name });
+  return { ...result, key }; // 密钥只在这里返回一次，服务器只保存哈希
+}
+async function removeAdmin(id, who) {
+  let name = id;
+  return mutate(draft => {
+    const a = (draft.admins || []).find(x => x.id === id);
+    if (!a) fail(404, "找不到这位管理员");
+    name = a.name;
+    draft.admins = draft.admins.filter(x => x.id !== id);
+    return { id };
+  }, () => ({ who, action: "撤销管理员", detail: name }));
 }
 
 // ---------- 导入 / 导出 / 备份 ----------
-function exportPayload() {
-  return { app: "kaizhuo-boardgame-club", version: 4, exportedAt: new Date().toISOString(), revision, state };
+function exportPayload(who) {
+  const data = who && who.role === "owner" ? state : { ...state, admins: [] };
+  return { app: "kaizhuo-boardgame-club", version: 4, exportedAt: new Date().toISOString(), revision, state: data };
 }
 
-async function importData(body) {
+async function importData(body, who) {
   const data = body?.data;
   if (!data || typeof data !== "object") fail(400, "没有读到备份内容");
   const src = data.state && typeof data.state === "object" ? data.state : data;
   if (Array.isArray(src.events)) {
     return mutate(draft => {
       const { state: merged, imported } = L.migrateLegacy(src, draft);
+      merged.admins = draft.admins;
+      merged.auditLog = draft.auditLog;
       return { [REPLACE]: merged, result: { mode: "legacy-merge", imported } };
-    });
+    }, r => ({ who, action: "导入旧版备份", detail: `合并 ${r.imported} 条报名` }));
   }
   if (!Array.isArray(src.games) || typeof src.sessions !== "object") fail(400, "无法识别的备份格式");
   const next = L.normalizeState(src);
   if (!next.games.length) fail(400, "备份里没有任何桌游，已取消导入");
-  return mutate(() => ({ [REPLACE]: next, result: { mode: "replace" } }));
+  return mutate(draft => ({ [REPLACE]: { ...next, admins: draft.admins, auditLog: draft.auditLog }, result: { mode: "replace" } }), { who, action: "导入备份", detail: "用备份替换全部数据" });
 }
 
-async function restoreBackup(rev) {
+async function restoreBackup(rev, who) {
   const backup = await store.getBackup(rev);
   if (!backup) fail(404, "找不到这个版本的备份");
-  return mutate(() => ({ [REPLACE]: L.normalizeState(backup.state), result: { restoredFrom: rev } }));
+  return mutate(draft => ({ [REPLACE]: { ...L.normalizeState(backup.state), admins: draft.admins, auditLog: draft.auditLog }, result: { restoredFrom: rev } }), { who, action: "恢复历史版本", detail: `v${rev}` });
 }
 
 function csvCell(value) {
@@ -745,7 +816,10 @@ async function handleApi(req, res, pathname, query) {
   } catch {
     fail(400, "请求地址不正确");
   }
-  const snap = () => (isAdminRequest(req) ? adminSnapshot() : publicSnapshot());
+  const snap = () => {
+    const who = checkAdmin(req);
+    return who ? adminSnapshot(who) : publicSnapshot();
+  };
 
   if (parts[1] === "state" && method === "GET") {
     if (storeError || !store) return sendJson(req, res, 503, { error: "数据暂时无法读取，请稍后刷新", readOnly: true });
@@ -768,16 +842,17 @@ async function handleApi(req, res, pathname, query) {
   }
 
   if (parts[1] === "admin") {
-    if (parts[2] === "verify" && method === "POST") {
-      requireAdmin(req);
-      return sendJson(req, res, 200, { ok: true });
-    }
-    requireAdmin(req);
+    const who = requireAdmin(req);
+    const owner = () => requireAdmin(req, { owner: true });
+    const done = (status, extra) => sendJson(req, res, status, { ok: true, ...extra, state: adminSnapshot(who) });
     const route = `${method} ${parts.slice(2, 3).join("/")}`;
     switch (route) {
+      case "POST verify":
+        return sendJson(req, res, 200, { ok: true, role: who.role, name: who.role === "owner" ? "所有者" : who.name });
       case "GET state":
-        return sendJson(req, res, 200, adminSnapshot());
+        return sendJson(req, res, 200, adminSnapshot(who));
       case "GET diag":
+        owner();
         return sendJson(req, res, 200, {
           ip: clientIp(req),
           headers: { "x-forwarded-for": req.headers["x-forwarded-for"] || "", "cf-connecting-ip": req.headers["cf-connecting-ip"] || "", "true-client-ip": req.headers["true-client-ip"] || "", "x-real-ip": req.headers["x-real-ip"] || "" },
@@ -791,29 +866,25 @@ async function handleApi(req, res, pathname, query) {
         const body = await readBody(req, 16 * 1024);
         await mutate(draft => {
           draft.settings = L.normalizeSettings({ ...draft.settings, ...body });
-        });
-        return sendJson(req, res, 200, { ok: true, state: adminSnapshot() });
+        }, { who, action: "修改设置", detail: Object.keys(body).join("、") });
+        return done(200);
       }
       case "PUT sessions":
-        await updateSession(parts[3], await readBody(req, 64 * 1024));
-        return sendJson(req, res, 200, { ok: true, state: adminSnapshot() });
+        await updateSession(parts[3], await readBody(req, 64 * 1024), who);
+        return done(200);
       case "DELETE sessions":
-        await deleteSession(parts[3]);
-        return sendJson(req, res, 200, { ok: true, state: adminSnapshot() });
-      case "POST games": {
-        const r = await createGame(await readBody(req, 64 * 1024));
-        return sendJson(req, res, 201, { ok: true, game: r, state: adminSnapshot() });
-      }
-      case "PUT games": {
-        const r = await updateGame(parts[3], await readBody(req, 64 * 1024));
-        return sendJson(req, res, 200, { ok: true, game: r, state: adminSnapshot() });
-      }
+        await deleteSession(parts[3], who);
+        return done(200);
+      case "POST games":
+        return done(201, { game: await createGame(await readBody(req, 64 * 1024), who) });
+      case "PUT games":
+        return done(200, { game: await updateGame(parts[3], await readBody(req, 64 * 1024), who) });
       case "DELETE games":
-        await deleteGame(parts[3]);
-        return sendJson(req, res, 200, { ok: true, state: adminSnapshot() });
+        await deleteGame(parts[3], who);
+        return done(200);
       case "GET export":
         res.setHeader("Content-Disposition", `attachment; filename="kaizhuo-backup-v${revision}.json"`);
-        return sendJson(req, res, 200, exportPayload());
+        return sendJson(req, res, 200, exportPayload(who));
       case "GET export.csv": {
         const which = query.get("session") || "all";
         if (which !== "all" && !L.isDateKey(which)) fail(400, "场次日期格式不正确");
@@ -825,17 +896,26 @@ async function handleApi(req, res, pathname, query) {
         return res.end(body);
       }
       case "POST import": {
-        const result = await importData(await readBody(req, 8 * 1024 * 1024));
-        return sendJson(req, res, 200, { ok: true, result, state: adminSnapshot() });
+        owner();
+        return done(200, { result: await importData(await readBody(req, 8 * 1024 * 1024), who) });
       }
       case "GET backups":
         return sendJson(req, res, 200, { backups: store ? await store.listBackups() : [] });
       case "POST backups": {
+        owner();
         const rev = Number(parts[3]);
         if (parts[4] !== "restore" || !Number.isInteger(rev)) break;
-        const result = await restoreBackup(rev);
-        return sendJson(req, res, 200, { ok: true, result, state: adminSnapshot() });
+        return done(200, { result: await restoreBackup(rev, who) });
       }
+      case "POST admins": {
+        owner();
+        const created = await addAdmin(await readBody(req, 4 * 1024), who);
+        return done(201, { admin: created });
+      }
+      case "DELETE admins":
+        owner();
+        await removeAdmin(parts[3], who);
+        return done(200);
       default:
         break;
     }

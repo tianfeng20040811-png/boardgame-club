@@ -20,6 +20,7 @@
         <span><span class="brand-name">开桌 · 管理后台</span><small>ADMIN CONSOLE</small></span>
       </a>
       <nav class="nav" aria-label="后台导航">
+        <span class="chip" id="whoami" hidden></span>
         <a href="/" target="_blank" rel="noopener">看主页 ↗</a>
         <button class="btn btn-sm btn-ghost" id="logout" type="button" hidden>退出</button>
       </nav>
@@ -29,7 +30,7 @@
   <main id="main" class="wrap admin-main">
     <section id="login" class="login panel" hidden>
       <h1>管理员登录</h1>
-      <p class="hint">密钥就是 Render 环境变量里的 <code>ADMIN_KEY</code>。只保存在本次浏览器会话中，关闭标签页后需重新输入。</p>
+      <p class="hint">所有者用 Render 环境变量里的 <code>ADMIN_KEY</code>；协作管理员用所有者发给你的专属密钥。密钥只保存在本次浏览器会话中，关闭标签页后需重新输入。</p>
       <form id="loginForm" class="login-form">
         <label class="label" for="key">管理员密钥</label>
         <input class="input" id="key" type="password" autocomplete="current-password" required>
