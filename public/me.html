@@ -3,17 +3,17 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>游戏库 · 开桌桌游社</title>
-  <meta name="description" content="桌游社可玩游戏一览：游戏介绍、规则速览与 B 站教学视频，按人数、时长、难度筛选。">
+  <title>我的报名 · 开桌桌游社</title>
+  <meta name="description" content="查看自己在桌游社的报名：每一轮分到哪一桌、和谁同桌；可以修改、取消，换了浏览器可以用找回码找回。">
   <meta name="theme-color" content="#04050d">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="stylesheet" href="/assets/base.css?v=__V__">
   <link rel="stylesheet" href="/assets/site.css?v=__V__">
   <script src="/assets/core.js?v=__V__" defer></script>
-  <script src="/assets/games.js?v=__V__" defer></script>
+  <script src="/assets/me.js?v=__V__" defer></script>
 </head>
-<body class="page-games">
+<body class="page-me">
   <div class="space space-static" aria-hidden="true"></div>
   <div class="scanlines" aria-hidden="true"></div>
 
@@ -33,38 +33,35 @@
     </div>
   </header>
 
-  <main id="main" class="wrap">
+  <main id="main" class="wrap me-main">
     <section class="lib-hero">
-      <p class="kicker">// GAME LIBRARY</p>
-      <h1>游戏库</h1>
-      <p>每款都有介绍、规则速览和 B 站教学视频。先看两分钟视频，周五上桌更快。</p>
+      <p class="kicker">// MY SIGNUPS</p>
+      <h1>我的报名</h1>
+      <p>记录保存在<b>这个浏览器</b>里。每一轮分到哪一桌、和谁同桌都在这里；开局前可以修改或取消。</p>
     </section>
 
-    <div class="filters" role="search" aria-label="筛选游戏">
-      <label class="search"><span class="sr-only">搜索游戏</span>
-        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
-        <input class="input" id="q" type="search" placeholder="搜索游戏名、类型或关键词" autocomplete="off" enterkeyhint="search">
-      </label>
-      <div class="filter-row" id="fPlayers" aria-label="人数"><span>人数</span></div>
-      <div class="filter-row" id="fTime" aria-label="时长"><span>时长</span></div>
-      <div class="filter-row" id="fDiff" aria-label="难度"><span>难度</span></div>
-      <div class="filter-row" id="fCat" aria-label="分类"><span>分类</span></div>
+    <div id="mineList" class="me-list" aria-live="polite">
+      <div class="skeleton" style="height:160px"></div>
     </div>
 
-    <p class="lib-count" id="count" aria-live="polite"></p>
-    <div class="cards" id="list">
-      <div class="skeleton" style="height:260px"></div>
-      <div class="skeleton" style="height:260px"></div>
-      <div class="skeleton" style="height:260px"></div>
-    </div>
-    <p class="lib-more">想玩的游戏不在这里？欢迎在群里推荐，社团会持续扩充游戏库。</p>
+    <section class="panel me-recover" aria-labelledby="recoverTitle">
+      <h2 id="recoverTitle">找回报名</h2>
+      <p class="hint">换了浏览器（比如在微信里报的名、现在用 Chrome 打开）就看不到原来的记录。报名时设了 4 位找回码的，在这里输入就能找回到这个浏览器；没设的请联系组织者。</p>
+      <form id="recoverForm" class="recover-form" method="post" action="/me" novalidate>
+        <div class="field"><label class="label" for="rSession">场次</label><select class="select" id="rSession" required></select></div>
+        <div class="field"><label class="label" for="rName">报名时的称呼</label><input class="input" id="rName" maxlength="20" autocomplete="nickname" required></div>
+        <div class="field"><label class="label" for="rPin">找回码</label><input class="input mono" id="rPin" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="4 位数字" required></div>
+        <button class="btn btn-primary" type="submit" id="rBtn">找回</button>
+      </form>
+      <p class="err" id="rErr" role="alert"></p>
+    </section>
     <div style="height:48px"></div>
   </main>
 
   <footer class="footer">
     <div class="wrap footer-in">
       <span>© 2026 开桌 · 桌游社 · 每周五 18:30 · R312</span>
-      <span><a href="/">首页</a> · <a href="/signup">报名</a> · <a href="/admin">管理</a></span>
+      <span><a href="/">首页</a> · <a href="/signup">报名</a> · <a href="/games">游戏库</a></span>
     </div>
   </footer>
 </body>

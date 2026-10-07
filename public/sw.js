@@ -3,7 +3,7 @@
  * 静态资源（带版本号）：先用缓存，后台更新
  * 接口数据不缓存（由页面自行处理） */
 const CACHE = "bgc-__V__";
-const CORE = ["/", "/games", "/signup", "/assets/base.css?v=__V__", "/assets/site.css?v=__V__", "/assets/signup.css?v=__V__", "/assets/core.js?v=__V__", "/assets/home.js?v=__V__", "/assets/games.js?v=__V__", "/assets/signup.js?v=__V__", "/assets/fx.js?v=__V__", "/favicon.svg"];
+const CORE = ["/", "/games", "/signup", "/me", "/assets/me.js?v=__V__", "/assets/base.css?v=__V__", "/assets/site.css?v=__V__", "/assets/signup.css?v=__V__", "/assets/core.js?v=__V__", "/assets/home.js?v=__V__", "/assets/games.js?v=__V__", "/assets/signup.js?v=__V__", "/assets/fx.js?v=__V__", "/favicon.svg"];
 
 self.addEventListener("install", event => {
   event.waitUntil(caches.open(CACHE).then(c => Promise.all(CORE.map(u => c.add(u).catch(() => {})))).then(() => self.skipWaiting()));

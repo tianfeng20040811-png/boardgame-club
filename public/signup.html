@@ -35,6 +35,7 @@
       <nav class="nav" aria-label="主导航">
         <a href="/" data-nav="/">首页</a>
         <a href="/games" data-nav="/games">游戏库</a>
+        <a href="/me" data-nav="/me">我的</a>
         <a class="nav-cta" href="/signup" data-nav="/signup">报名</a>
         <a class="nav-admin" href="/admin" aria-label="管理后台" title="管理后台"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><span>管理</span></a>
       </nav>
@@ -56,7 +57,7 @@
           <span class="seal" aria-hidden="true">报名</span>
           <div>
             <h1>上桌报名</h1>
-            <p class="gc-sub">每周五 <b>18:30</b> · <b id="locLabel">R312</b> · 开局前都能报</p>
+            <p class="gc-sub">每周五 <b>18:30</b> · <b id="locLabel">R312</b> · 一晚多轮，开局前都能报 · <a href="/me" class="gc-mine-link">我的报名 →</a></p>
           </div>
         </div>
 
@@ -82,16 +83,24 @@
             <span>正在修改报名</span><button type="button" class="link-btn" id="cancelEdit">放弃修改</button>
           </div>
           <fieldset class="step" id="stepGame">
-            <legend><span class="step-no">一</span>挑一款想玩的游戏 <em>*</em></legend>
-            <p class="hint">满员也可以选：有第二志愿会自动转过去，否则排候补。点「▶ 教学」先看视频。</p>
-            <div class="gopts" id="gameOptions" role="radiogroup" aria-label="第一志愿游戏" aria-required="true">
+            <legend><span class="step-no">一</span>按喜欢程度依次点选游戏 <em>*</em></legend>
+            <p class="hint">先点最想玩的，再点第二、第三……选几款都行，<b>排得越多越容易分到能开的桌</b>。再点一次可以取消。点「▶ 教学」先看视频。</p>
+            <div class="ranked" id="ranked" aria-live="polite"></div>
+            <div class="gopts" id="gameOptions" role="group" aria-label="想玩的游戏（按点选顺序排志愿）">
               <div class="skeleton" style="height:96px"></div><div class="skeleton" style="height:96px"></div>
             </div>
             <p class="err" id="errGame" role="alert"></p>
           </fieldset>
 
+          <fieldset class="step" id="stepRounds">
+            <legend><span class="step-no">二</span>参加哪几轮</legend>
+            <div class="round-opts" id="roundOptions"></div>
+            <p class="hint">每轮会换一款游戏（同一个人不会两轮玩同一款），按你的志愿顺序自动分配。</p>
+            <p class="err" id="errRounds" role="alert"></p>
+          </fieldset>
+
           <fieldset class="step" id="stepInfo">
-            <legend><span class="step-no">二</span>填写信息</legend>
+            <legend><span class="step-no">三</span>填写信息</legend>
             <div class="field">
               <label class="label" for="name">你的称呼 <em>*</em><small>会显示在公开名单上</small></label>
               <input class="input" id="name" name="name" maxlength="20" autocomplete="nickname" placeholder="如：小林 / 林同学" required>
@@ -99,11 +108,11 @@
             </div>
 
             <div class="field" role="radiogroup" aria-labelledby="levelLabel">
-              <span class="label" id="levelLabel">你玩过<span id="levelGame">这款游戏</span>吗？ <em>*</em></span>
+              <span class="label" id="levelLabel">你的桌游经验 <em>*</em></span>
               <div class="seg" id="levelSeg">
-                <label><input type="radio" name="level" value="0"><span><i aria-hidden="true">🌱</i>没玩过</span></label>
-                <label><input type="radio" name="level" value="1"><span><i aria-hidden="true">🎲</i>玩过几次</span></label>
-                <label><input type="radio" name="level" value="2"><span><i aria-hidden="true">🎓</i>熟练能教</span></label>
+                <label><input type="radio" name="level" value="0"><span><i aria-hidden="true">🌱</i>新手</span></label>
+                <label><input type="radio" name="level" value="1"><span><i aria-hidden="true">🎲</i>玩过一些</span></label>
+                <label><input type="radio" name="level" value="2"><span><i aria-hidden="true">🎓</i>老手能教</span></label>
               </div>
               <p class="err" id="errLevel" role="alert"></p>
             </div>
@@ -115,14 +124,14 @@
             </label>
 
             <div class="field">
-              <label class="label" for="altGameId">第二志愿 <small>选填</small></label>
-              <select class="select" id="altGameId" name="altGameId"><option value="">不需要，只玩第一志愿</option></select>
-              <p class="hint">第一志愿满员，或开局时凑不齐人，就自动帮你转到这款。</p>
+              <label class="label" for="note">备注 <small>选填，仅组织者可见</small></label>
+              <textarea class="textarea" id="note" name="note" maxlength="120" rows="2" placeholder="如：会晚到 20 分钟 / 想和朋友小王同桌"></textarea>
             </div>
 
             <div class="field">
-              <label class="label" for="note">备注 <small>选填，仅组织者可见</small></label>
-              <textarea class="textarea" id="note" name="note" maxlength="120" rows="2" placeholder="如：会晚到 20 分钟 / 想和朋友小王同桌"></textarea>
+              <label class="label" for="pin">找回码 <small>选填 4 位数字，换了浏览器时用它找回报名</small></label>
+              <input class="input pin-input" id="pin" name="pin" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" autocomplete="off" placeholder="如：0612">
+              <p class="err" id="errPin" role="alert"></p>
             </div>
             <div class="hp" aria-hidden="true"><label>网站<input type="text" name="website" tabindex="-1" autocomplete="off"></label></div>
           </fieldset>
@@ -136,13 +145,14 @@
         <section class="paper-card success" id="success" hidden tabindex="-1" aria-live="polite"></section>
 
         <section class="paper-card" id="mine" hidden>
-          <h2 class="card-h"><span class="seal seal-sm" aria-hidden="true">我</span>我的报名 <small>只保存在这台设备上</small></h2>
+          <h2 class="card-h"><span class="seal seal-sm" aria-hidden="true">我</span>我的报名 <small>保存在这个浏览器里 · <a href="/me">完整查看 / 找回 →</a></small></h2>
           <div id="mineList"></div>
         </section>
 
         <section class="paper-card" id="roster">
           <details id="rosterDetails">
             <summary class="card-h"><span class="seal seal-sm" aria-hidden="true">名</span><span id="rosterTitle">本场名单与分桌</span><span class="sum-arrow" aria-hidden="true">展开</span></summary>
+            <div class="roster-rounds" id="rosterRounds" role="tablist" aria-label="选择轮次"></div>
             <div id="rosterBody"></div>
           </details>
         </section>

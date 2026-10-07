@@ -13,6 +13,7 @@
   let sid = null;
   let q = "";
   let filter = "all";
+  let tround = 0;
   try {
     key = sessionStorage.getItem(KEY) || "";
   } catch {}
@@ -89,20 +90,56 @@
     $("#sessionPick").value = sid || "";
     $("#sessionPickRow").hidden = !["list", "tables"].includes(tab);
   }
+  // 每条报名在各轮的去向：id → [{ round, kind: seat | none | skip, gid, table, rank, short }]
   function placements(v) {
     const map = new Map();
-    for (const [gid, g] of Object.entries(v.alloc.games)) {
-      for (const t of g.tables) for (const p of t.players) map.set(p.id, { gid, table: t.no, short: t.short, via: p.via });
-      g.waitlist.forEach((p, i) => map.set(p.id, { gid, wait: i + 1 }));
-    }
-    for (const p of v.alloc.orphans || []) map.set(p.id, { orphan: true });
+    const rounds = v.alloc.rounds;
+    const put = (id, i, x) => {
+      if (!map.has(id)) map.set(id, rounds.map(r => ({ round: r.index, kind: "skip" })));
+      map.get(id)[i] = { round: rounds[i].index, ...x };
+    };
+    rounds.forEach((r, i) => {
+      for (const [gid, g] of Object.entries(r.games)) for (const t of g.tables) for (const p of t.players) put(p.id, i, { kind: "seat", gid, table: t.no, rank: p.rank, short: t.short });
+      for (const p of r.unassigned) put(p.id, i, { kind: "none" });
+    });
     return map;
   }
-  function placeText(pl) {
-    if (!pl) return "";
-    if (pl.orphan) return `<span class="tag tag-wait">游戏已下架</span>`;
-    if (pl.wait) return `${esc(gname(pl.gid))} <span class="tag tag-wait">候补 ${pl.wait}</span>`;
-    return `${esc(gname(pl.gid))} · 第${pl.table}桌${pl.short ? `<span class="tag tag-wait">差${pl.short}</span>` : ""}${pl.via === "alt" ? ` <span class="tag tag-alt">二志愿</span>` : ""}`;
+  const unplaced = list => Boolean(list && list.some(p => p.kind === "none"));
+  function placeText(list) {
+    if (!list) return `<span class="tag tag-wait">不在任何一轮</span>`;
+    const multi = list.length > 1;
+    return list
+      .map(p => {
+        const pre = multi ? `<span class="mono rno">R${p.round}</span>` : "";
+        if (p.kind === "skip") return `<div class="pl-line muted">${pre}不参加</div>`;
+        if (p.kind === "none") return `<div class="pl-line">${pre}<span class="tag tag-wait">未成桌</span></div>`;
+        return `<div class="pl-line">${pre}${esc(gname(p.gid))} · ${p.table}桌${p.short ? ` <span class="tag tag-wait">差${p.short}</span>` : ""}${p.rank > 1 ? ` <span class="tag tag-alt">志愿${p.rank}</span>` : ""}</div>`;
+      })
+      .join("");
+  }
+  const prefsText = s => (s.prefs || []).map((g, i) => `${i + 1}.${gname(g)}`).join(" ");
+  const roundsText = (s, v) => (v.rounds.length < 2 ? "—" : !s.rounds?.length ? "全部" : s.rounds.map(n => `第${n}轮`).join("、"));
+  const roundSpan = r => `${r.start}–${r.end}`;
+  const sameRounds = (a, b) => a.length === b.length && a.every((r, i) => r.start === b[i].start && r.end === b[i].end);
+  // 轮次编辑器（场次 / 加场 / 基础设置共用）
+  function roundRow(r, i) {
+    return `<div class="round-row"><span class="mono">第${i + 1}轮</span><input class="input" type="time" name="rs" value="${esc(r.start)}" required aria-label="第${i + 1}轮开始"><span>–</span><input class="input" type="time" name="re" value="${esc(r.end)}" required aria-label="第${i + 1}轮结束"><button class="btn btn-xs btn-ghost" type="button" data-round-del aria-label="删除这一轮">×</button></div>`;
+  }
+  function roundsEditor(rounds, { label = "轮次时间", reset = false } = {}) {
+    return `<div class="field span-all"><span class="label">${label}<small>每轮换一款游戏；一个人不会两轮分到同一款</small></span>
+      <div class="rounds-edit">${rounds.map(roundRow).join("")}</div>
+      <div class="toolbar"><button class="btn btn-xs" type="button" data-round-add>＋ 加一轮</button>${reset ? `<button class="btn btn-xs btn-ghost" type="button" data-round-reset>恢复默认轮次</button>` : ""}</div></div>`;
+  }
+  function readRounds(form) {
+    const f = new FormData(form);
+    const s = f.getAll("rs");
+    const e = f.getAll("re");
+    return s.map((start, i) => ({ start: String(start), end: String(e[i] || "") }));
+  }
+  function renumberRounds(box) {
+    $$(".round-row", box).forEach((row, i) => {
+      row.querySelector(".mono").textContent = `第${i + 1}轮`;
+    });
   }
   function download(name, text, type) {
     const blob = new Blob([text], { type });
@@ -129,10 +166,10 @@
     const all = [...v.signups].sort((a, b) => a.createdAt.localeCompare(b.createdAt));
     const ql = q.toLowerCase();
     const rows = all.filter(s => {
-      if (ql && !`${s.name} ${s.note} ${gname(s.gameId)}`.toLowerCase().includes(ql)) return false;
+      if (ql && !`${s.name} ${s.note} ${prefsText(s)}`.toLowerCase().includes(ql)) return false;
       if (filter === "in") return s.checkedIn;
       if (filter === "notin") return !s.checkedIn;
-      if (filter === "wait") return pl.get(s.id)?.wait;
+      if (filter === "wait") return unplaced(pl.get(s.id));
       if (filter === "new") return s.level === 0;
       if (filter === "teach") return s.teach || s.level === 2;
       return true;
@@ -142,15 +179,16 @@
       inn: all.filter(s => s.checkedIn).length,
       newbie: all.filter(s => s.level === 0).length,
       teach: all.filter(s => s.teach || s.level === 2).length,
-      wait: all.filter(s => pl.get(s.id)?.wait).length,
-      tables: v.alloc.totals.tablesReady,
+      wait: all.filter(s => unplaced(pl.get(s.id))).length,
+      tables: v.alloc.rounds.reduce((n, r) => n + r.totals.tablesReady, 0),
     };
+    const multi = v.rounds.length > 1;
     if (!$("#listToolbar", box)) {
       box.innerHTML = `<div id="listKpis"></div>
       <div class="toolbar" id="listToolbar">
         <input class="input" id="q" type="search" placeholder="搜索称呼、游戏或备注" value="${esc(q)}">
         <select class="select" id="filter">
-          ${[["all", "全部"], ["notin", "未签到"], ["in", "已签到"], ["wait", "候补"], ["new", "新手"], ["teach", "能教/愿教"]].map(([v2, l]) => `<option value="${v2}" ${filter === v2 ? "selected" : ""}>${l}</option>`).join("")}
+          ${[["all", "全部"], ["notin", "未签到"], ["in", "已签到"], ["wait", "有轮次未成桌"], ["new", "新手"], ["teach", "能教/愿教"]].map(([v2, l]) => `<option value="${v2}" ${filter === v2 ? "selected" : ""}>${l}</option>`).join("")}
         </select>
         <button class="btn btn-sm btn-primary" type="button" data-act="add">＋ 添加报名</button>
         <button class="btn btn-sm" type="button" data-act="csv">导出本场 CSV</button>
@@ -159,17 +197,18 @@
       <div id="listResults"></div>`;
     }
     $("#listKpis", box).innerHTML = `
-      <div class="kpis"><span class="kpi"><b>${k.total}</b>报名</span><span class="kpi"><b>${k.inn}</b>已签到</span><span class="kpi"><b>${k.tables}</b>已成桌</span><span class="kpi"><b>${k.newbie}</b>新手</span><span class="kpi"><b>${k.teach}</b>能教/愿教</span><span class="kpi"><b>${k.wait}</b>候补</span></div>`;
-    $("#listResults", box).innerHTML = `${rows.length ? `<div class="tbl-wrap"><table class="tbl"><thead><tr><th>#</th><th>称呼</th><th>第一志愿</th><th>第二志愿</th><th>熟悉</th><th>分配结果</th><th>签到</th><th>备注</th><th>报名时间</th><th>操作</th></tr></thead><tbody>
+      <div class="kpis"><span class="kpi"><b>${k.total}</b>报名</span><span class="kpi"><b>${k.inn}</b>已签到</span><span class="kpi"><b>${k.tables}</b>已成桌${multi ? "（各轮合计）" : ""}</span><span class="kpi"><b>${k.newbie}</b>新手</span><span class="kpi"><b>${k.teach}</b>能教/愿教</span><span class="kpi"><b>${k.wait}</b>有轮次未成桌</span></div>`;
+    $("#listResults", box).innerHTML = `${rows.length ? `<div class="tbl-wrap"><table class="tbl"><thead><tr><th>#</th><th>称呼</th><th>志愿顺序</th>${multi ? "<th>参加轮次</th>" : ""}<th>熟悉</th><th>分配结果</th><th>签到</th><th>备注</th><th>报名时间</th><th>操作</th></tr></thead><tbody>
         ${rows
           .map(s => {
             const lv = s.level === null ? "—" : B.LEVELS[s.level];
             const lvTag = s.level === 0 ? "tag-new" : s.level === 2 ? "tag-pro" : "";
+            const prefs = s.prefs || [];
             return `<tr>
               <td class="num">${all.indexOf(s) + 1}</td>
-              <td><b>${esc(s.name)}</b>${s.by !== "self" ? ` <span class="tag">${s.by === "admin" ? "代报" : "导入"}</span>` : ""}</td>
-              <td>${esc(gname(s.gameId))}</td>
-              <td>${esc(gname(s.altGameId)) || "—"}</td>
+              <td><b>${esc(s.name)}</b>${s.by !== "self" ? ` <span class="tag">${s.by === "admin" ? "代报" : "导入"}</span>` : ""}${s.hasPin ? ` <span class="tag" title="设了找回码">🔑</span>` : ""}</td>
+              <td class="prefs" title="${esc(prefsText(s))}">${prefs.slice(0, 4).map((g, i) => `<span class="pref"><i>${i + 1}</i>${esc(gname(g))}</span>`).join("")}${prefs.length > 4 ? `<span class="tag">+${prefs.length - 4}</span>` : ""}</td>
+              ${multi ? `<td class="time">${esc(roundsText(s, v))}</td>` : ""}
               <td><span class="tag ${lvTag}">${esc(lv)}</span>${s.teach ? ` <span class="tag tag-pro">愿教</span>` : ""}</td>
               <td>${placeText(pl.get(s.id))}</td>
               <td><label class="check"><input type="checkbox" data-checkin="${esc(s.id)}" ${s.checkedIn ? "checked" : ""} aria-label="${esc(s.name)} 签到"></label></td>
@@ -183,15 +222,20 @@
   }
 
   function signupForm(s, v) {
-    const opts = (sel, allowEmpty) => `${allowEmpty ? `<option value="">无</option>` : ""}${(v.allGameIds || v.gameIds).map(id => `<option value="${esc(id)}" ${sel === id ? "selected" : ""}>${esc(gname(id))}</option>`).join("")}`;
+    // 本场开放的在前；也列出其他启用中的游戏和这条报名原有的志愿（管理员不受本场开放范围限制）
+    const ids = [...new Set([...v.gameIds, ...(s?.prefs || []), ...v.allGameIds, ...data.games.filter(g => g.active).map(g => g.id)])].filter(id => game(id));
+    const multi = v.rounds.length > 1;
     return `<h2 id="modalTitle" class="modal-title">${s ? "编辑报名" : "添加报名"} · ${esc(B.fmtDate(v.date))}</h2>
     <form id="suForm" class="form-grid">
       <div class="field span-2"><label class="label" for="f-name">称呼</label><input class="input" id="f-name" name="name" maxlength="20" required value="${esc(s?.name || "")}"></div>
-      <div class="field"><label class="label" for="f-game">第一志愿</label><select class="select" id="f-game" name="gameId">${opts(s?.gameId, false)}</select></div>
-      <div class="field"><label class="label" for="f-alt">第二志愿</label><select class="select" id="f-alt" name="altGameId">${opts(s?.altGameId, true)}</select></div>
+      <div class="field span-all"><span class="label">志愿顺序 <small>按想玩的程度依次点选，再点一次取消</small></span>
+        <div class="pp-order" id="ppOrder" aria-live="polite"></div>
+        <div class="pp-opts" role="group" aria-label="想玩的游戏">${ids.map(id => `<button class="pp-opt" type="button" data-pp="${esc(id)}" aria-pressed="false"><b class="pp-rank"></b>${esc(gname(id))}${v.gameIds.includes(id) ? "" : `<small>本场未开放</small>`}</button>`).join("")}</div></div>
+      ${multi ? `<div class="field span-all"><span class="label">参加轮次</span><div class="toolbar">${v.rounds.map(r => `<label class="check"><input type="checkbox" name="r" value="${r.index}" ${!s?.rounds?.length || s.rounds.includes(r.index) ? "checked" : ""}>第${r.index}轮 <span class="mono">${esc(roundSpan(r))}</span></label>`).join("")}</div></div>` : ""}
       <div class="field"><label class="label" for="f-level">熟悉程度</label><select class="select" id="f-level" name="level"><option value="">未填</option>${B.LEVELS.map((l, i) => `<option value="${i}" ${s?.level === i ? "selected" : ""}>${l}</option>`).join("")}</select></div>
       <div class="field"><span class="label">其他</span><label class="check"><input type="checkbox" name="teach" ${s?.teach ? "checked" : ""}>愿意教学</label><label class="check"><input type="checkbox" name="checkedIn" ${s?.checkedIn ? "checked" : ""}>已签到</label></div>
       <div class="field span-all"><label class="label" for="f-note">备注</label><textarea class="textarea" id="f-note" name="note" maxlength="120">${esc(s?.note || "")}</textarea></div>
+      <div class="field"><label class="label" for="f-pin">${s?.hasPin ? "重设找回码" : "找回码"} <small>选填 4 位数字${s?.hasPin ? "，留空不改" : ""}</small></label><input class="input mono" id="f-pin" name="pin" inputmode="numeric" maxlength="4" pattern="[0-9]{4}" autocomplete="off"></div>
       <div class="modal-actions span-all"><button class="btn btn-ghost" type="button" data-close>取消</button><button class="btn btn-primary" type="submit">保存</button></div>
     </form>`;
   }
@@ -199,10 +243,45 @@
     const v = view();
     const s = id ? v.signups.find(x => x.id === id) : null;
     const m = B.openModal(signupForm(s, v), { wide: true });
+    const order = (s?.prefs || []).filter(g => game(g));
+    const paint = () => {
+      $$(".pp-opt", m).forEach(b => {
+        const i = order.indexOf(b.dataset.pp);
+        b.setAttribute("aria-pressed", String(i >= 0));
+        b.querySelector(".pp-rank").textContent = i >= 0 ? i + 1 : "";
+      });
+      $("#ppOrder", m).innerHTML = order.length
+        ? order.map((g, i) => `<span class="pp-chip"><i>${i + 1}</i>${esc(gname(g))}${i ? `<button type="button" data-pp-up="${i}" aria-label="把 ${esc(gname(g))} 往前移">↑</button>` : ""}</span>`).join("")
+        : `<span class="hint">还没选游戏</span>`;
+    };
+    paint();
+    m.addEventListener("click", e => {
+      const opt = e.target.closest("[data-pp]");
+      const up = e.target.closest("[data-pp-up]");
+      if (opt) {
+        const i = order.indexOf(opt.dataset.pp);
+        if (i >= 0) order.splice(i, 1);
+        else order.push(opt.dataset.pp);
+        paint();
+      } else if (up) {
+        const i = Number(up.dataset.ppUp);
+        [order[i - 1], order[i]] = [order[i], order[i - 1]];
+        paint();
+      }
+    });
+    $("#f-pin", m).addEventListener("input", e => (e.target.value = e.target.value.replace(/\D/g, "").slice(0, 4)));
     $("#suForm", m).addEventListener("submit", async e => {
       e.preventDefault();
       const f = new FormData(e.target);
-      const body = { name: f.get("name"), gameId: f.get("gameId"), altGameId: f.get("altGameId"), level: f.get("level") === "" ? null : Number(f.get("level")), teach: f.get("teach") === "on", checkedIn: f.get("checkedIn") === "on", note: f.get("note") };
+      if (!order.length) return B.toast("至少选一款游戏", "error");
+      const pin = String(f.get("pin") || "");
+      if (pin && !/^\d{4}$/.test(pin)) return B.toast("找回码需要是 4 位数字", "error");
+      const body = { name: f.get("name"), prefs: [...order], level: f.get("level") === "" ? null : Number(f.get("level")), teach: f.get("teach") === "on", checkedIn: f.get("checkedIn") === "on", note: f.get("note") };
+      if (v.rounds.length > 1) {
+        body.rounds = f.getAll("r").map(Number);
+        if (!body.rounds.length) return B.toast("至少参加一轮", "error");
+      }
+      if (pin) body.pin = pin;
       const res = await guard(() => (s ? call(`/api/signups/${encodeURIComponent(s.id)}`, { method: "PATCH", body }) : call("/api/signups", { method: "POST", body: { ...body, sessionId: v.id } })), s ? "已保存" : "已添加");
       if (res) B.closeModal();
     });
@@ -217,23 +296,43 @@
       return;
     }
     const byId = new Map(v.signups.map(s => [s.id, s]));
-    const blocks = (v.allGameIds || v.gameIds)
-      .map(id => ({ g: game(id), a: v.alloc.games[id] }))
-      .filter(x => x.g && x.a && (x.a.count || x.a.waitlist.length))
-      .sort((x, y) => y.a.count - x.a.count)
-      .map(({ g, a }) => {
-        const player = p => {
-          const s = byId.get(p.id);
-          const marks = `${p.teach || p.level === 2 ? " 🎓" : ""}${p.level === 0 ? " 🌱" : ""}${p.via === "alt" ? " ↪" : ""}`;
-          return `<div class="aplayer ${s?.checkedIn ? "in" : ""}"><span>${esc(p.name)}${marks}</span><label class="check"><input type="checkbox" data-checkin="${esc(p.id)}" ${s?.checkedIn ? "checked" : ""} aria-label="${esc(p.name)} 签到">签到</label></div>`;
-        };
-        return `<div class="alloc-game" style="--c:${B.color(g)}"><h3><span class="gi">${B.icon(g, 20)}</span>${esc(g.name)}</h3>
-          <p class="sub">每桌 ${a.size} 人 · ${a.copies} 套 · 最少 ${a.min} 人 · 已报 ${a.count}${a.waitlist.length ? ` · 候补 ${a.waitlist.length}` : ""}</p>
-          ${a.tables.map(t => `<div class="atable"><div class="atable-h"><b>第 ${t.no} 桌</b><span>${t.players.length} 人${t.short ? ` · 差 ${t.short} 人` : ""}</span></div>${t.players.map(player).join("")}</div>`).join("")}
-          ${a.waitlist.length ? `<div class="atable"><div class="atable-h"><b>候补</b></div>${a.waitlist.map(player).join("")}</div>` : ""}</div>`;
-      });
-    box.innerHTML = `<div class="toolbar no-print"><span class="hint">${v.status === "open" ? "报名中：分桌为实时预估，开局后按第二志愿做最终调整。" : "已截止：以下为最终分桌。"}</span><button class="btn btn-sm" type="button" data-act="print">打印分桌表</button></div>
-      ${blocks.length ? `<div class="alloc-grid">${blocks.join("")}</div>` : `<div class="empty">这一场还没有人报名</div>`}`;
+    const rounds = v.alloc.rounds;
+    if (tround >= rounds.length) tround = 0;
+    const r = rounds[tround];
+    const multi = rounds.length > 1;
+    const player = p => {
+      const s = byId.get(p.id);
+      const marks = `${p.teach || p.level === 2 ? " 🎓" : ""}${p.level === 0 ? " 🌱" : ""}`;
+      return `<div class="aplayer ${s?.checkedIn ? "in" : ""}"><span>${esc(p.name)}${marks}${p.rank > 1 ? ` <small class="rank">志愿${p.rank}</small>` : ""}</span><label class="check"><input type="checkbox" data-checkin="${esc(p.id)}" ${s?.checkedIn ? "checked" : ""} aria-label="${esc(p.name)} 签到">签到</label></div>`;
+    };
+    const blocks = r
+      ? Object.entries(r.games)
+          .map(([id, a]) => ({ g: game(id), a }))
+          .filter(x => x.g && x.a.count)
+          .sort((x, y) => y.a.count - x.a.count)
+          .map(({ g, a }) => `<div class="alloc-game" style="--c:${B.color(g)}"><h3><span class="gi">${B.icon(g, 20)}</span>${esc(g.name)}</h3>
+          <p class="sub">每桌 ${a.size} 人 · ${a.copies} 套 · 最少 ${a.min} 人 · 本轮 ${a.count} 人</p>
+          ${a.tables.map(t => `<div class="atable"><div class="atable-h"><b>第 ${t.no} 桌</b><span>${t.players.length} 人${t.short ? ` · 差 ${t.short} 人` : ""}</span></div>${t.players.map(player).join("")}</div>`).join("")}</div>`)
+      : [];
+    // 没成桌的人：列出前几个志愿，方便现场协调
+    const loose = r && r.unassigned.length
+      ? `<div class="alloc-game alloc-loose"><h3>本轮未成桌 · ${r.unassigned.length} 人</h3><p class="sub">志愿里的游戏都凑不齐最少人数。可以现场劝他们加入差人的桌，或手动编辑志愿后系统会重排。</p>
+          ${r.unassigned.map(p => `${player(p)}<p class="loose-prefs">${esc(prefsText(byId.get(p.id) || { prefs: [] }))}</p>`).join("")}</div>`
+      : "";
+    const tabs = multi
+      ? `<div class="round-tabs" role="tablist" aria-label="轮次">${rounds.map((x, i) => `<button type="button" role="tab" data-tround="${i}" aria-selected="${i === tround}">第${x.index}轮 <span class="mono">${esc(roundSpan(x))}</span> · ${x.totals.seated}人</button>`).join("")}</div>`
+      : "";
+    const state = v.status === "cancelled"
+      ? "本场停办。"
+      : v.frozen
+        ? "🔒 已锁定：活动开始时的分桌已固定，之后新来的人只会补进有空位的桌，不会打乱已开局的桌。"
+        : v.status === "open"
+          ? "报名中：分桌实时预估，每次有人报名或修改都会重算；活动开始时自动锁定。"
+          : "活动已开始，分桌正在锁定…";
+    box.innerHTML = `<div class="toolbar no-print"><span class="hint">${state}</span>${v.frozen ? `<button class="btn btn-sm" type="button" data-act="reallocate">重新自动分桌</button>` : ""}<button class="btn btn-sm" type="button" data-act="print">打印${multi ? "本轮" : ""}分桌表</button></div>
+      ${tabs}
+      <h2 class="print-only">${esc(B.fmtDate(v.date))} ${multi && r ? `第${r.index}轮 ${esc(roundSpan(r))}` : esc(v.time)} 分桌表</h2>
+      ${blocks.length || loose ? `<div class="alloc-grid">${blocks.join("")}${loose}</div>` : `<div class="empty">${v.signups.length ? "这一轮还没有人参加" : "这一场还没有人报名"}</div>`}`;
   }
 
   // ---------- 场次 ----------
@@ -241,15 +340,14 @@
     const active = data.games.filter(g => g.active || s.gameIds.includes(g.id));
     const offered = new Set(s.gameIds);
     return `<form class="ecard" data-session-form="${esc(s.id)}">
-      <div class="ecard-h"><h3>${esc(B.fmtDate(s.date))} ${esc(s.time)} <span class="pill ${s.status === "cancelled" ? "pill-full" : s.status === "open" ? "pill-ok" : "pill-live"}">${esc(B.sessionLabel(s))}</span>${s.extra ? `<span class="tag">加场</span>` : ""}</h3>
+      <div class="ecard-h"><h3>${esc(B.fmtDate(s.date))} <span class="mono">${esc(s.rounds.map(roundSpan).join(" / "))}</span> <span class="pill ${s.status === "cancelled" ? "pill-full" : s.status === "open" ? "pill-ok" : "pill-live"}">${esc(B.sessionLabel(s))}</span>${s.extra ? `<span class="tag">加场</span>` : ""}</h3>
         <div>${s.extra && !s.signups.length ? `<button class="btn btn-xs btn-danger" type="button" data-del-session="${esc(s.id)}">删除加场</button>` : ""}</div></div>
       <div class="form-grid">
         <div class="field"><label class="label">标题（可空）</label><input class="input" name="title" maxlength="30" value="${esc(s.title)}" placeholder="如：期中特别场"></div>
-        <div class="field"><label class="label">开始</label><input class="input" type="time" name="time" value="${esc(s.time)}"></div>
-        <div class="field"><label class="label">结束</label><input class="input" type="time" name="endTime" value="${esc(s.endTime)}"></div>
         <div class="field"><label class="label">地点</label><input class="input" name="location" maxlength="40" value="${esc(s.location)}"></div>
         <div class="field span-2"><label class="label">备注（公开显示）</label><input class="input" name="note" maxlength="200" value="${esc(s.note)}" placeholder="如：本周改到 R210 / 停办原因"></div>
         <div class="field"><span class="label">状态</span><label class="check"><input type="checkbox" name="cancelled" ${s.status === "cancelled" ? "checked" : ""}>本场停办</label></div>
+        ${roundsEditor(s.rounds, { label: `轮次时间${s.customRounds ? "（本场单独设置）" : "（默认）"}`, reset: s.customRounds })}
       </div>
       <details class="section-block"><summary class="label">本场开放的游戏、套数与每桌人数（不改则用桌游默认设置）</summary>
         <div class="game-cfg"><div class="game-cfg-row head"><span>游戏</span><span>套数</span><span>每桌人数</span></div>
@@ -261,15 +359,15 @@
   function renderSessions() {
     const box = $("#tab-sessions");
     const up = data.allSessions.filter(s => data.sessions.some(x => x.id === s.id)).sort((a, b) => a.date.localeCompare(b.date));
-    box.innerHTML = `<p class="hint">系统每周自动生成「${WEEK[data.settings.weekday]} ${esc(data.settings.time)} · ${esc(data.settings.location)}」的场次，并开放未来 ${data.settings.bookAheadWeeks} 周的预约。某一周要停办、换教室或改时间，在下面修改即可。</p>
+    const st = data.settings;
+    box.innerHTML = `<p class="hint">系统每周自动生成「${WEEK[st.weekday]} ${esc(st.rounds.map(roundSpan).join(" / "))} · ${esc(st.location)}」的场次（共 ${st.rounds.length} 轮），并开放未来 ${st.bookAheadWeeks} 周的预约。某一周要停办、换教室、改时间或改轮数，在下面修改即可；默认轮次在「数据与设置」里改。</p>
       <div class="cards-list section-block">${up.map(sessionCard).join("")}</div>
       <form class="ecard section-block" id="extraForm"><div class="ecard-h"><h3>＋ 加开一场</h3></div>
         <div class="form-grid">
           <div class="field"><label class="label">日期</label><input class="input" type="date" name="date" required></div>
-          <div class="field"><label class="label">开始</label><input class="input" type="time" name="time" value="${esc(data.settings.time)}" required></div>
-          <div class="field"><label class="label">结束</label><input class="input" type="time" name="endTime" value="${esc(data.settings.endTime)}" required></div>
-          <div class="field"><label class="label">地点</label><input class="input" name="location" value="${esc(data.settings.location)}" required></div>
+          <div class="field"><label class="label">地点</label><input class="input" name="location" value="${esc(st.location)}" required></div>
           <div class="field span-2"><label class="label">标题</label><input class="input" name="title" maxlength="30" placeholder="如：期末解压特别场"></div>
+          ${roundsEditor(st.rounds)}
         </div>
         <div class="modal-actions"><button class="btn btn-sm btn-primary" type="submit">创建</button></div>
       </form>`;
@@ -291,7 +389,8 @@
     }
     const st = data.settings;
     const own = (val, def) => (String(val || "").trim() === def ? "" : val);
-    const body = { title: f.get("title"), time: own(f.get("time"), st.time), endTime: own(f.get("endTime"), st.endTime), location: own(f.get("location"), st.location), note: f.get("note"), status: f.get("cancelled") ? "cancelled" : "", gameIds: same ? [] : checked, copies, tableSizes };
+    const rounds = readRounds(form);
+    const body = { title: f.get("title"), rounds: sameRounds(rounds, st.rounds) ? null : rounds, location: own(f.get("location"), st.location), note: f.get("note"), status: f.get("cancelled") ? "cancelled" : "", gameIds: same ? [] : checked, copies, tableSizes };
     await guard(() => call(`/api/admin/sessions/${encodeURIComponent(id)}`, { method: "PUT", body }), "场次已保存");
   }
 
@@ -361,11 +460,10 @@
         <form class="ecard" id="settingsForm"><div class="form-grid">
           <div class="field"><label class="label">社团名称</label><input class="input" name="clubName" maxlength="30" value="${esc(s.clubName)}"></div>
           <div class="field"><label class="label">每周活动日</label><select class="select" name="weekday">${WEEK.map((w, i) => `<option value="${i}" ${s.weekday === i ? "selected" : ""}>${w}</option>`).join("")}</select></div>
-          <div class="field"><label class="label">开始时间</label><input class="input" type="time" name="time" value="${esc(s.time)}"></div>
-          <div class="field"><label class="label">结束时间</label><input class="input" type="time" name="endTime" value="${esc(s.endTime)}"></div>
           <div class="field"><label class="label">默认地点</label><input class="input" name="location" maxlength="40" value="${esc(s.location)}"></div>
           <div class="field"><label class="label">开放预约周数</label><input class="input" type="number" name="bookAheadWeeks" min="1" max="8" value="${s.bookAheadWeeks}"></div>
           <div class="field span-all"><label class="label">首页公告（留空则不显示）</label><input class="input" name="announcement" maxlength="300" value="${esc(s.announcement)}" placeholder="如：本周新到《拉斯维加斯》，欢迎来试玩！"></div>
+          ${roundsEditor(s.rounds, { label: "默认轮次时间（每周场次都按这个）" })}
         </div><div class="modal-actions"><button class="btn btn-sm btn-primary" type="submit">保存设置</button></div></form>
       </section>
       <section class="section-block"><h2>备份与导入</h2>
@@ -530,7 +628,8 @@
         const date = f.get("date");
         const exists = data.allSessions.find(s => s.id === date);
         if (exists && !exists.extra) return B.toast("这一天已经有常规场次了，直接在上面修改即可", "error");
-        await guard(() => call(`/api/admin/sessions/${encodeURIComponent(date)}`, { method: "PUT", body: { extra: true, time: f.get("time"), endTime: f.get("endTime"), location: f.get("location"), title: f.get("title") } }), "已加开场次");
+        const rounds = readRounds(form);
+        await guard(() => call(`/api/admin/sessions/${encodeURIComponent(date)}`, { method: "PUT", body: { extra: true, rounds: sameRounds(rounds, data.settings.rounds) ? null : rounds, location: f.get("location"), title: f.get("title") } }), "已加开场次");
       } else if (form.id === "addAdminForm") {
         e.preventDefault();
         const name = new FormData(form).get("name");
@@ -539,9 +638,11 @@
       } else if (form.id === "settingsForm") {
         e.preventDefault();
         const f = new FormData(form);
-        const body = Object.fromEntries(f.entries());
-        body.weekday = Number(body.weekday);
-        body.bookAheadWeeks = Number(body.bookAheadWeeks);
+        const body = {};
+        for (const k of ["clubName", "location", "announcement"]) body[k] = f.get(k) ?? "";
+        body.weekday = Number(f.get("weekday"));
+        body.bookAheadWeeks = Number(f.get("bookAheadWeeks"));
+        body.rounds = readRounds(form);
         await guard(() => call("/api/admin/settings", { method: "PUT", body }), "设置已保存");
       }
     });
@@ -549,8 +650,38 @@
       const t = e.target.closest("button");
       if (!t) return;
       const d = t.dataset;
+      if ("roundAdd" in d) {
+        const box = t.closest(".field").querySelector(".rounds-edit");
+        const rows = $$(".round-row", box);
+        if (rows.length >= 4) return B.toast("一晚最多 4 轮", "error");
+        const last = rows[rows.length - 1];
+        const start = last ? last.querySelector("[name=re]").value : data.settings.rounds[0].start;
+        const [h, m] = (start || "19:00").split(":").map(Number);
+        const end = `${String((h + 1) % 24).padStart(2, "0")}:${String(m || 0).padStart(2, "0")}`;
+        box.insertAdjacentHTML("beforeend", roundRow({ start, end }, rows.length));
+        return;
+      }
+      if ("roundDel" in d) {
+        const box = t.closest(".rounds-edit");
+        if ($$(".round-row", box).length <= 1) return B.toast("至少保留一轮", "error");
+        t.closest(".round-row").remove();
+        renumberRounds(box);
+        return;
+      }
+      if ("roundReset" in d) {
+        t.closest(".field").querySelector(".rounds-edit").innerHTML = data.settings.rounds.map(roundRow).join("");
+        B.toast("已填回默认轮次，点「保存本场设置」生效");
+        return;
+      }
+      if (d.tround !== undefined) {
+        tround = Number(d.tround);
+        render();
+        return;
+      }
       if (d.act === "add") openSignup(null);
-      else if (d.act === "print") window.print();
+      else if (d.act === "reallocate") {
+        if (await B.confirmDialog({ title: "重新自动分桌？", text: "会按所有人的志愿把本场每一轮重新分一遍，已经坐下开局的桌可能被打乱。只在现场人员变化很大时使用。", ok: "重新分桌", danger: true })) await guard(() => call(`/api/admin/sessions/${encodeURIComponent(sid)}`, { method: "PUT", body: { reallocate: true } }), "已重新分桌");
+      } else if (d.act === "print") window.print();
       else if (d.act === "csv" || d.act === "csv-all") {
         const which = d.act === "csv" ? sid : "all";
         try {
@@ -570,7 +701,7 @@
       else if (d.edit) openSignup(d.edit);
       else if (d.del) {
         const s = view().signups.find(x => x.id === d.del);
-        if (await B.confirmDialog({ title: "删除这条报名？", text: `${s?.name || ""} · ${gname(s?.gameId)}`, ok: "删除", danger: true })) await guard(() => call(`/api/signups/${encodeURIComponent(d.del)}`, { method: "DELETE" }), "已删除");
+        if (await B.confirmDialog({ title: "删除这条报名？", text: `${s?.name || ""} · ${s ? prefsText(s) : ""}`, ok: "删除", danger: true })) await guard(() => call(`/api/signups/${encodeURIComponent(d.del)}`, { method: "DELETE" }), "已删除");
       } else if (d.editGame) openGame(d.editGame);
       else if (d.toggleGame) {
         const g = game(d.toggleGame);

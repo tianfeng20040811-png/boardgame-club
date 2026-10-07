@@ -189,3 +189,31 @@ main, .footer, .announce { position: relative; z-index: 2; }
 .group-h small { font: 600 12px/1 var(--mono); color: var(--muted); letter-spacing: 0.1em; }
 .notice-line { font-size: 13px; color: var(--amber); background: rgba(255, 176, 32, 0.08); border: 1px solid rgba(255, 176, 32, 0.3); border-radius: 10px; padding: 6px 10px; }
 .lib-more { margin-top: 28px; text-align: center; color: var(--muted); font-size: 14.5px; }
+.round-chip { display: inline-block; margin-left: 6px; padding: 1px 8px; border-radius: 999px; font-size: 12px; color: var(--muted); border: 1px solid var(--line); white-space: nowrap; }
+.round-chip.on { color: var(--text); border-color: color-mix(in srgb, var(--c) 55%, transparent); background: color-mix(in srgb, var(--c) 12%, transparent); }
+@media (max-width: 760px) { .meter-txt { flex-wrap: wrap; } .round-chip { margin: 4px 6px 0 0; } }
+
+/* ---------- 我的报名 ---------- */
+.me-main .lib-hero p b { color: var(--accent); }
+.me-list { display: grid; gap: 14px; margin-top: 18px; }
+.me-card { padding: 18px 20px; }
+.me-card-h { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.me-card-h h2 { font-size: 20px; }
+.me-prefs { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 12px; }
+.me-rounds { list-style: none; padding: 0; margin: 14px 0 0; display: grid; gap: 10px; }
+.me-rounds li { padding: 10px 12px; border-radius: 12px; background: rgba(255, 255, 255, 0.03); border: 1px solid var(--line); }
+.me-round-h { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.me-round-h .mono { color: var(--muted); font-size: 13px; }
+.me-round-h small { color: var(--muted); }
+.me-rounds .hint { margin-top: 6px; }
+.me-acts { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.me-warn { margin-top: 12px; color: var(--amber); }
+.me-tip { margin-top: 10px; }
+.me-empty { padding: 26px; text-align: center; }
+.me-empty .me-acts { justify-content: center; }
+.me-past summary { cursor: pointer; color: var(--muted); padding: 8px 0; }
+.me-past .me-card { margin-top: 10px; opacity: 0.75; }
+.me-recover { margin-top: 26px; padding: 20px; }
+.me-recover h2 { font-size: 18px; margin-bottom: 6px; }
+.recover-form { display: grid; grid-template-columns: 1.2fr 1fr 0.8fr auto; gap: 10px; align-items: end; margin-top: 14px; }
+@media (max-width: 640px) { .recover-form { grid-template-columns: 1fr; } }

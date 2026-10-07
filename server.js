@@ -284,17 +284,35 @@ async function boot() {
 
 // ---------- 快照 ----------
 function publicSettings(s) {
-  return { clubName: s.clubName, weekday: s.weekday, time: s.time, endTime: s.endTime, location: s.location, bookAheadWeeks: s.bookAheadWeeks, tzOffsetMinutes: s.tzOffsetMinutes, announcement: s.announcement };
+  return { clubName: s.clubName, weekday: s.weekday, rounds: s.rounds, time: s.time, endTime: s.endTime, location: s.location, bookAheadWeeks: s.bookAheadWeeks, tzOffsetMinutes: s.tzOffsetMinutes, announcement: s.announcement };
+}
+const freezing = new Set();
+function scheduleFreeze(views) {
+  for (const v of views) {
+    if (!v.needsFreeze || freezing.has(v.id) || storeError || !store) continue;
+    freezing.add(v.id);
+    mutate(draft => {
+      const stored = draft.sessions[v.id];
+      if (!stored || stored.frozen || !stored.signups.length) return;
+      const view = L.sessionView(draft, v.id, nowMs());
+      if (view.status === "open") return;
+      stored.frozen = L.freezeAllocation(view.alloc, new Date().toISOString());
+    })
+      .catch(err => console.error("[freeze]", err.message))
+      .finally(() => freezing.delete(v.id));
+  }
 }
 function publicSnapshot() {
   const now = nowMs();
+  const sessions = L.upcomingKeys(state, now).map(key => L.sessionView(state, key, now));
+  scheduleFreeze(sessions);
   return {
     revision,
     updatedAt,
     serverNow: now,
     settings: publicSettings(state.settings),
     games: state.games.map(L.publicGame),
-    sessions: L.upcomingKeys(state, now).map(key => L.sessionView(state, key, now)),
+    sessions,
     adminEnabled: Boolean(ADMIN_KEY),
     readOnly: Boolean(storeError),
   };
@@ -330,19 +348,36 @@ function findSignup(draft, id) {
   return null;
 }
 
-function applySignupFields(target, body, offered, isAdmin) {
+// 旧版页面（缓存）还会发 gameId / altGameId：转成志愿排序
+function prefsFromBody(body) {
+  if (Array.isArray(body.prefs)) return body.prefs;
+  if ("gameId" in body) return [body.gameId, body.altGameId];
+  return null;
+}
+function applySignupFields(target, body, offered, isAdmin, roundCount) {
   if ("name" in body) target.name = L.cleanLine(body.name, 20);
-  if ("gameId" in body) target.gameId = String(body.gameId || "");
-  if ("altGameId" in body) target.altGameId = body.altGameId ? String(body.altGameId) : "";
+  const prefs = prefsFromBody(body);
+  if (prefs) {
+    const clean = [...new Set(prefs.filter(Boolean).map(String))].slice(0, L.MAX_PREFS);
+    if (clean.some(id => !offered.has(id))) fail(400, "志愿里有本场没开放的游戏，请刷新页面后重选");
+    target.prefs = clean;
+  }
+  if ("rounds" in body) {
+    const raw = Array.isArray(body.rounds) ? body.rounds : [];
+    const list = [...new Set(raw.map(n => L.clampInt(n, 1, L.MAX_ROUNDS, 0)).filter(n => n >= 1 && n <= roundCount))].sort((a, b) => a - b);
+    if (raw.length && !list.length) fail(400, "请至少选择参加一轮");
+    target.rounds = list.length === roundCount ? [] : list;
+  }
   if ("level" in body) target.level = body.level === null || body.level === "" ? null : L.clampInt(body.level, 0, 2, null);
   if ("teach" in body) target.teach = Boolean(body.teach);
   if ("note" in body) target.note = L.cleanText(body.note, 120);
   if (isAdmin && "checkedIn" in body) target.checkedIn = Boolean(body.checkedIn);
   if (target.level === 0) target.teach = false;
   if (!target.name) fail(400, "请填写称呼");
-  if (!offered.has(target.gameId)) fail(400, "请选择本场开放的游戏");
-  if (target.altGameId === target.gameId || (target.altGameId && !offered.has(target.altGameId))) target.altGameId = "";
+  if (!target.prefs || !target.prefs.length) fail(400, "请至少选一款想玩的游戏");
 }
+const PIN_RE = /^\d{4}$/;
+const pinHashOf = (id, pin) => sha256(`pin:${id}:${pin}`);
 
 const CLIENT_ID_RE = /^s[0-9a-f]{12}$/;
 const CLIENT_TOKEN_RE = /^[A-Za-z0-9_-]{22,64}$/;
@@ -380,20 +415,23 @@ async function createSignup(req, body) {
       const sess = draft.sessions[key] || (draft.sessions[key] = L.normalizeSession(key, {}, new Set(draft.games.map(g => g.id))));
       const allowed = new Set(admin ? draft.games.map(g => g.id) : L.openGameIds(draft, sess));
       const iso = new Date(now).toISOString();
-      const entry = { id: "", name: "", gameId: "", altGameId: "", level: null, teach: false, note: "", createdAt: iso, updatedAt: iso, altAt: iso, tokenHash: "", checkedIn: false, by: admin ? "admin" : "self" };
-      applySignupFields(entry, body, allowed, admin);
-      if (entry.level === null && !admin) fail(400, "请选择你对这款游戏的熟悉程度");
+      const roundCount = L.sessionTiming(key, sess, draft.settings).rounds.length;
+      const entry = { id: "", name: "", prefs: [], rounds: [], level: null, teach: false, note: "", createdAt: iso, updatedAt: iso, prefsAt: iso, tokenHash: "", extraTokenHashes: [], pinHash: "", checkedIn: false, by: admin ? "admin" : "self" };
+      applySignupFields(entry, body, allowed, admin, roundCount);
+      if (entry.level === null && !admin) fail(400, "请选择你的桌游经验");
+      if (body.pin && !PIN_RE.test(String(body.pin))) fail(400, "找回码需要是 4 位数字");
       const k = L.nameKey(entry.name);
       if (sess.signups.some(s => L.nameKey(s.name) === k)) fail(409, `「${entry.name}」已经报名过这一场了。要修改请在原来的设备上操作；帮朋友报名请填写朋友的称呼`);
       if (sess.signups.length >= MAX_SIGNUPS_PER_SESSION) fail(409, "本场报名人数已达上限");
       const token = clientToken || crypto.randomBytes(18).toString("base64url");
       entry.id = clientToken ? clientId : `s${crypto.randomBytes(6).toString("hex")}`;
       entry.tokenHash = sha256(token);
+      if (body.pin) entry.pinHash = pinHashOf(entry.id, String(body.pin));
       sess.signups.push(entry);
-      return { id: entry.id, token, sessionId: key, name: entry.name, gameId: entry.gameId };
-    }, who ? r => (r.repeat ? null : { who, action: "代报名", detail: `${r.sessionId} ${r.name} · ${gameNameOf(r.gameId)}` }) : null);
+      return { id: entry.id, token, sessionId: key, name: entry.name, first: entry.prefs[0] };
+    }, who ? r => (r.repeat ? null : { who, action: "代报名", detail: `${r.sessionId} ${r.name} · ${gameNameOf(r.first)}` }) : null);
     delete result.name;
-    delete result.gameId;
+    delete result.first;
     if (!admin && !result.repeat) hit(okKey, SIGNUP_WINDOW);
     return result;
   } catch (error) {
@@ -405,7 +443,9 @@ async function createSignup(req, body) {
 function authorizeSignup(req, signup) {
   if (isAdminRequest(req)) return true;
   const token = String(req.headers["x-edit-token"] || "");
-  if (!token || !signup.tokenHash || !safeEqual(sha256(token), signup.tokenHash)) fail(403, "只能在报名时使用的设备上修改（或联系组织者）");
+  const h = sha256(token);
+  const ok = Boolean(token) && [signup.tokenHash, ...(signup.extraTokenHashes || [])].some(x => x && safeEqual(h, x));
+  if (!ok) fail(403, "只能在报名时使用的设备上修改；换了浏览器可以用找回码找回（或联系组织者）");
   return false;
 }
 
@@ -421,21 +461,24 @@ async function updateSignup(req, id, body) {
     const status = L.sessionStatus(found.sess, timing, nowMs());
     if (!admin && status !== "open") fail(409, `${statusMessage(status, found.sess.location || draft.settings.location)}，如需调整请联系组织者`);
     // 本人修改：可选本场开放的游戏，也可以保留原来已选的（哪怕它后来停用了）；管理员不受限
-    const allowed = new Set(admin ? draft.games.map(g => g.id) : [...L.openGameIds(draft, found.sess), found.signup.gameId, found.signup.altGameId].filter(Boolean));
+    const allowed = new Set(admin ? draft.games.map(g => g.id) : [...L.openGameIds(draft, found.sess), ...found.signup.prefs]);
     const prev = found.signup;
     const next = { ...prev };
-    applySignupFields(next, body, allowed, admin);
-    if (next.level === null && !admin) fail(400, "请选择熟悉程度");
+    applySignupFields(next, body, allowed, admin, timing.rounds.length);
+    if (next.level === null && !admin) fail(400, "请选择你的桌游经验");
+    if (body.pin) {
+      if (!PIN_RE.test(String(body.pin))) fail(400, "找回码需要是 4 位数字");
+      next.pinHash = pinHashOf(id, String(body.pin));
+    }
     const k = L.nameKey(next.name);
     if (found.sess.signups.some(s => s.id !== id && L.nameKey(s.name) === k)) fail(409, `本场已有人使用「${next.name}」这个称呼`);
     const iso = new Date().toISOString();
-    // 换了第一志愿就按新的时间重新排队；换了第二志愿只影响第二志愿的排队，不影响第一志愿的座位
-    if (next.gameId !== prev.gameId) next.createdAt = iso;
-    if (next.altGameId !== prev.altGameId) next.altAt = iso;
+    // 志愿有变化就按修改时间重新排队（防止先占早位再换去热门游戏）
+    if (JSON.stringify(next.prefs) !== JSON.stringify(prev.prefs)) next.prefsAt = iso;
     next.updatedAt = iso;
     found.sess.signups[found.index] = next;
     const onlyCheckin = Object.keys(body).every(k => k === "checkedIn");
-    logged = onlyCheckin ? { action: next.checkedIn ? "签到" : "取消签到", detail: `${found.key} ${next.name}` } : { action: "修改报名", detail: `${found.key} ${prev.name}${prev.name !== next.name ? ` → ${next.name}` : ""} · ${gameNameOf(next.gameId)}` };
+    logged = onlyCheckin ? { action: next.checkedIn ? "签到" : "取消签到", detail: `${found.key} ${next.name}` } : { action: "修改报名", detail: `${found.key} ${prev.name}${prev.name !== next.name ? ` → ${next.name}` : ""} · ${gameNameOf(next.prefs[0])}` };
     return { id, sessionId: found.key };
   }, who ? () => logged && { who, ...logged } : null);
   return result;
@@ -452,10 +495,37 @@ async function deleteSignup(req, id) {
     const timing = L.sessionTiming(found.key, found.sess, draft.settings);
     const status = L.sessionStatus(found.sess, timing, nowMs());
     if (!admin && status !== "open") fail(409, `${statusMessage(status, found.sess.location || draft.settings.location)}，如需取消请联系组织者`);
-    detail = `${found.key} ${found.signup.name} · ${gameNameOf(found.signup.gameId)}`;
+    detail = `${found.key} ${found.signup.name} · ${gameNameOf(found.signup.prefs[0])}`;
     found.sess.signups.splice(found.index, 1);
     return { id, sessionId: found.key };
   }, who ? () => ({ who, action: "删除报名", detail }) : null);
+}
+
+async function recoverSignup(req, body) {
+  rateLimit(req, "recover", 10, 3600000);
+  const key = String(body.sessionId || "");
+  const pin = String(body.pin || "");
+  if (!L.isDateKey(key)) fail(400, "请选择场次");
+  if (!PIN_RE.test(pin)) fail(400, "找回码是 4 位数字");
+  const sess = state.sessions[key];
+  const k = L.nameKey(body.name);
+  if (!k) fail(400, "请填写报名时用的称呼");
+  const target = sess && sess.signups.find(x => L.nameKey(x.name) === k);
+  // 同一条报名 1 小时内最多猜错 5 次
+  const lockKey = `pinfail:${key}:${sha256(k).slice(0, 16)}`;
+  if (isLimited(lockKey, 5, 3600000)) fail(429, "找回码错误次数过多，请 1 小时后再试，或联系组织者");
+  if (!target || !target.pinHash || !safeEqual(pinHashOf(target.id, pin), target.pinHash)) {
+    hit(lockKey, 3600000);
+    fail(404, target && !target.pinHash ? "这条报名没有设置找回码，请联系组织者" : "没有找到：请检查场次、称呼和找回码");
+  }
+  const token = crypto.randomBytes(18).toString("base64url");
+  await mutate(draft => {
+    const found = findSignup(draft, target.id);
+    if (!found) fail(404, "这条报名已被取消");
+    found.signup.extraTokenHashes = [...(found.signup.extraTokenHashes || []), sha256(token)].slice(-5);
+  });
+  const x = state.sessions[key].signups.find(y => y.id === target.id);
+  return { id: x.id, token, sessionId: key, name: x.name, prefs: x.prefs, rounds: x.rounds, level: x.level, teach: x.teach, note: x.note };
 }
 
 // ---------- 管理：场次 / 设置 / 桌游 ----------
@@ -465,11 +535,18 @@ async function updateSession(key, body, who) {
     const gameIds = new Set(draft.games.map(g => g.id));
     const current = draft.sessions[key] || L.normalizeSession(key, { extra: Boolean(body.extra) }, gameIds);
     const merged = { ...current };
-    for (const field of ["title", "time", "endTime", "location", "note", "gameIds", "tableSizes", "copies"]) if (field in body) merged[field] = body[field];
+    for (const field of ["title", "location", "note", "gameIds", "tableSizes", "copies"]) if (field in body) merged[field] = body[field];
+    if ("rounds" in body) {
+      if (body.rounds === null || (Array.isArray(body.rounds) && !body.rounds.length)) merged.rounds = null;
+      else {
+        const r = L.normalizeRounds(body.rounds);
+        if (!r) fail(400, "轮次时间格式不正确");
+        merged.rounds = r;
+      }
+    }
+    if (body.reallocate) merged.frozen = null;
     if ("status" in body) merged.status = body.status === "cancelled" ? "cancelled" : "";
     if ("extra" in body && !draft.sessions[key]) merged.extra = Boolean(body.extra);
-    if ("time" in body && body.time && L.parseHM(body.time) === null) fail(400, "开始时间格式应为 HH:MM");
-    if ("endTime" in body && body.endTime && L.parseHM(body.endTime) === null) fail(400, "结束时间格式应为 HH:MM");
     draft.sessions[key] = L.normalizeSession(key, merged, gameIds);
     return { sessionId: key };
   }, { who, action: body.extra ? "加开场次" : body.status === "cancelled" ? "停办场次" : "修改场次", detail: key });
@@ -586,7 +663,7 @@ async function deleteGame(id, who) {
   return mutate(draft => {
     const index = draft.games.findIndex(g => g.id === id);
     if (index < 0) fail(404, "找不到这款桌游");
-    const used = Object.values(draft.sessions).some(s => s.signups.some(p => p.gameId === id || p.altGameId === id));
+    const used = Object.values(draft.sessions).some(s => s.signups.some(p => p.prefs.includes(id)));
     if (used) fail(409, "已有报名记录用到这款游戏，不能删除。可以把它设为“暂不开放”");
     name = draft.games[index].name;
     draft.games.splice(index, 1);
@@ -664,31 +741,36 @@ function buildCsv(which) {
   const now = nowMs();
   const keys = which === "all" ? Object.keys(state.sessions).sort() : [which];
   const gameName = id => state.games.find(g => g.id === id)?.name || id || "";
-  const header = ["场次日期", "序号", "称呼", "第一志愿", "第二志愿", "熟悉程度", "愿意教学", "分配游戏", "桌号", "分配方式", "签到", "备注", "报名时间", "最后修改", "来源"];
+  const maxRounds = Math.max(1, ...keys.filter(L.isDateKey).map(k => L.sessionTiming(k, state.sessions[k], state.settings).rounds.length));
+  const header = ["场次日期", "序号", "称呼", "志愿顺序", "参加轮次", "桌游经验", "愿意教学"];
+  for (let r = 1; r <= maxRounds; r++) header.push(`第${r}轮分配`);
+  header.push("签到", "备注", "设了找回码", "报名时间", "最后修改", "来源");
   const rows = [header];
+  const tzMs = state.settings.tzOffsetMinutes * 60000;
+  const fmt = iso => {
+    const d = new Date(Date.parse(iso) + tzMs);
+    return Number.isNaN(d.getTime()) ? "" : d.toISOString().slice(0, 16).replace("T", " ");
+  };
   for (const key of keys) {
     if (!L.isDateKey(key)) continue;
     const view = L.sessionView(state, key, now, { admin: true });
-    const placement = new Map();
-    for (const [gid, g] of Object.entries(view.alloc.games)) {
-      for (const t of g.tables) for (const p of t.players) placement.set(p.id, { game: gameName(gid), table: `第${t.no}桌${t.short ? `（差${t.short}人）` : ""}`, via: p.via === "alt" ? "第二志愿" : "第一志愿" });
-      for (const p of g.waitlist) placement.set(p.id, { game: gameName(gid), table: "候补", via: "候补" });
-    }
-    for (const p of view.alloc.orphans) placement.set(p.id, { game: "", table: "", via: "游戏已下架" });
-    const tzMs = state.settings.tzOffsetMinutes * 60000;
-    const fmt = iso => {
-      const d = new Date(Date.parse(iso) + tzMs);
-      return Number.isNaN(d.getTime()) ? "" : d.toISOString().slice(0, 16).replace("T", " ");
-    };
+    const place = view.alloc.rounds.map(r => {
+      const m = new Map();
+      for (const [gid, g] of Object.entries(r.games)) for (const t of g.tables) for (const p of t.players) m.set(p.id, `${gameName(gid)} 第${t.no}桌（第${p.rank}志愿）`);
+      for (const p of r.unassigned) m.set(p.id, "暂未分到");
+      return m;
+    });
     view.signups
       .slice()
-      .sort((a, b) => a.createdAt.localeCompare(b.createdAt))
-      .forEach((s, i) => {
-        const p = placement.get(s.id) || {};
-        rows.push([key, i + 1, s.name, gameName(s.gameId), gameName(s.altGameId), s.level === null ? "" : L.LEVELS[s.level], s.teach ? "是" : "", p.game || "", p.table || "", p.via || "", s.checkedIn ? "已签到" : "", s.note, fmt(s.createdAt), fmt(s.updatedAt), { self: "本人", admin: "管理员录入", import: "旧系统导入" }[s.by] || s.by]);
+      .sort((x, y) => x.createdAt.localeCompare(y.createdAt))
+      .forEach((sg, i) => {
+        const row = [key, i + 1, sg.name, sg.prefs.map((g, j) => `${j + 1}.${gameName(g)}`).join(" "), sg.rounds.length ? sg.rounds.map(n => `第${n}轮`).join("、") : "全部", sg.level === null ? "" : L.LEVELS[sg.level], sg.teach ? "是" : ""];
+        for (let r = 0; r < maxRounds; r++) row.push(place[r] ? place[r].get(sg.id) || (r < view.rounds.length ? "不参加" : "") : "");
+        row.push(sg.checkedIn ? "已签到" : "", sg.note, sg.hasPin ? "是" : "", fmt(sg.createdAt), fmt(sg.updatedAt), { self: "本人", admin: "管理员录入", import: "旧系统导入" }[sg.by] || sg.by);
+        rows.push(row);
       });
   }
-  return `﻿${rows.map(r => r.map(csvCell).join(",")).join("\r\n")}\r\n`;
+  return "\uFEFF" + rows.map(r => r.map(csvCell).join(",")).join("\r\n") + "\r\n";
 }
 
 // ---------- 静态文件（内存缓存 + 预压缩 + 版本号） ----------
@@ -716,7 +798,7 @@ function loadStatic() {
     });
   }
 }
-const ROUTES = { "/": "/index.html", "/games": "/games.html", "/signup": "/signup.html", "/admin": "/admin.html" };
+const ROUTES = { "/": "/index.html", "/games": "/games.html", "/signup": "/signup.html", "/me": "/me.html", "/admin": "/admin.html" };
 
 const CSP = [
   "default-src 'self'",
@@ -844,6 +926,10 @@ async function handleApi(req, res, pathname, query) {
     if (parts.length === 2 && method === "POST") {
       const result = await createSignup(req, await readBody(req, 16 * 1024));
       return sendJson(req, res, 201, { ok: true, signup: result, state: snap() });
+    }
+    if (parts.length === 3 && parts[2] === "recover" && method === "POST") {
+      const result = await recoverSignup(req, await readBody(req, 4 * 1024));
+      return sendJson(req, res, 200, { ok: true, signup: result, state: publicSnapshot() });
     }
     if (parts.length === 3 && method === "PATCH") {
       const result = await updateSignup(req, parts[2], await readBody(req, 16 * 1024));

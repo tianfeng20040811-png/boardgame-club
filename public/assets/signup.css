@@ -138,7 +138,7 @@
 .gopt:hover .gopt-body { border-color: var(--c); transform: translateY(-1px); }
 .gopt input:focus-visible + .gopt-body { outline: 2px solid var(--red); outline-offset: 2px; }
 .gopt input:checked + .gopt-body { border-color: var(--red); background: #fff6ef; box-shadow: 0 0 0 3px rgba(232, 67, 46, 0.16), 0 4px 0 rgba(184, 38, 26, 0.22); }
-.gopt input:checked + .gopt-body::after { content: "✓"; position: absolute; top: -8px; left: -8px; width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; background: var(--red); color: #fff; font-weight: 900; font-size: 14px; box-shadow: 0 2px 0 var(--red-deep); }
+.gopt-rank:empty { display: none; }
 .gopt-icon { grid-row: span 2; width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; color: var(--c); background: color-mix(in srgb, var(--c) 10%, #fff); border: 1px solid color-mix(in srgb, var(--c) 30%, transparent); }
 .gopt-name { font-weight: 800; font-size: 16px; line-height: 1.3; }
 .gopt-meta { font-size: 12.5px; color: var(--muted); }
@@ -262,3 +262,32 @@ details[open] .sum-arrow::after { content: "收起"; font-size: 13px; }
 .theme-guochao .skeleton { background: linear-gradient(90deg, #f6e7d2, #fff3e2, #f6e7d2); background-size: 200% 100%; }
 
 @media (prefers-reduced-motion: reduce) { .embers, .gc-rays { display: none; } }
+
+/* ---------- 志愿排序 ---------- */
+.gopt-rank { position: absolute; top: -9px; left: -9px; z-index: 3; min-width: 26px; height: 26px; padding: 0 6px; border-radius: 13px; display: grid; place-items: center; background: var(--red); color: #fff; font: 900 14px/1 var(--mono); box-shadow: 0 2px 0 var(--red-deep), 0 0 12px rgba(232, 67, 46, 0.45); }
+.gopt-body { position: relative; }
+.ranked { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; min-height: 36px; padding: 8px 10px; border-radius: 12px; background: #fff3e6; border: 1px dashed rgba(184, 38, 26, 0.35); }
+.ranked-label { font-size: 12.5px; font-weight: 800; color: var(--red-deep); margin-right: 2px; }
+.ranked-empty { margin: 0; font-size: 13px; color: var(--muted); }
+.rk { display: inline-flex; align-items: center; gap: 4px; padding: 3px 4px 3px 4px; border-radius: 999px; background: #fff; border: 1px solid rgba(184, 38, 26, 0.3); font-size: 13.5px; font-weight: 700; }
+.rk b { display: inline-grid; place-items: center; min-width: 20px; height: 20px; border-radius: 10px; background: var(--red); color: #fff; font: 800 12px/1 var(--mono); }
+.rk-btn { width: 22px; height: 22px; border-radius: 50%; border: 0; background: #f6e7d2; color: var(--red-deep); font-weight: 900; line-height: 1; padding: 0; }
+.rk-btn:hover { background: #f0d6b8; }
+/* ---------- 轮次 ---------- */
+.round-opts { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; }
+.round-opt { position: relative; cursor: pointer; }
+.round-opt input { position: absolute; opacity: 0; }
+.round-opt span { display: grid; gap: 2px; padding: 10px 14px; border-radius: 12px; border: 1.5px solid var(--line-strong); background: #fff; }
+.round-opt small { color: var(--muted); font-family: var(--mono); }
+.round-opt input:checked + span { border-color: var(--red); background: #fff6ef; box-shadow: 0 0 0 3px rgba(232, 67, 46, 0.14); }
+.round-opt input:focus-visible + span { outline: 2px solid var(--red); outline-offset: 2px; }
+.round-opt.off { opacity: 0.55; }
+.pin-input { max-width: 160px; letter-spacing: 0.4em; font-family: var(--mono); }
+.gc-mine-link { color: var(--gold-soft) !important; font-weight: 700; white-space: nowrap; }
+/* ---------- 名单轮次切换 ---------- */
+.roster-rounds { display: flex; gap: 6px; margin-top: 14px; flex-wrap: wrap; }
+.rr-tab { padding: 6px 12px; border-radius: 10px; border: 1px solid var(--line-strong); background: #fff; font-weight: 700; color: var(--text-2); }
+.rr-tab small { font-family: var(--mono); color: var(--muted); font-weight: 500; }
+.rr-tab[aria-selected="true"] { border-color: var(--red); color: var(--red-deep); background: #fff6ef; }
+.name sup { font-size: 10px; color: var(--muted); margin-left: 2px; }
+.name.me sup { color: #ffe0d6; }

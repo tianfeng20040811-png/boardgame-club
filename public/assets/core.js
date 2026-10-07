@@ -2,11 +2,11 @@
 (function () {
   "use strict";
 
-  const STATE_CACHE = "bgc.state.v4";
+  const STATE_CACHE = "bgc.state.v5";
   const MINE_KEY = "bgc.mine.v1";
   const NAME_KEY = "bgc.lastName";
   const WEEKDAYS = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"];
-  const LEVELS = ["没玩过", "玩过几次", "熟练能教"];
+  const LEVELS = ["新手", "玩过一些", "老手能教"];
   const DIFF = ["", "轻松", "适中", "进阶"];
   const INK = ["#1f6f8b", "#b0247a", "#4d7c0f", "#b45309", "#6d4bd8", "#c62828", "#00796b", "#1565c0"];
   const NEON = ["#22e5ff", "#ff2bd6", "#b6ff3b", "#ffb020", "#a78bff", "#ff5d73", "#2dffb3", "#4da3ff"];
@@ -67,7 +67,7 @@
     const startOf = k => Date.parse(`${k}T18:30:00Z`) - tz * 60000;
     if (Date.now() > startOf(key(delta)) + 3.5 * 3600000) delta += 7;
     const k = key(delta);
-    return { id: k, date: k, time: "18:30", endTime: "22:00", startAt: startOf(k), endAt: startOf(k) + 3.5 * 3600000, location: "R312", status: Date.now() >= startOf(k) ? "live" : "open", gameIds: [], alloc: { games: {}, totals: { signups: 0, seated: 0, tablesReady: 0, waitlist: 0 } }, fallback: true };
+    return { id: k, date: k, time: "18:30", endTime: "22:00", startAt: startOf(k), endAt: startOf(k) + 3.5 * 3600000, location: "R312", status: Date.now() >= startOf(k) ? "live" : "open", gameIds: [], rounds: [], alloc: { rounds: [], interest: {}, totals: { signups: 0, tablesReady: 0, unassigned: 0 } }, fallback: true };
   }
 
   // ---------- 唤醒提示 ----------
@@ -206,7 +206,8 @@
   }
   function boot({ poll = 30000 } = {}) {
     const cached = store.get(STATE_CACHE, null);
-    if (cached && Array.isArray(cached.sessions)) setSnapshot(cached, true);
+    // 只用和当前版本同一数据格式的缓存（每场都有按轮的分桌）
+    if (cached && Array.isArray(cached.sessions) && cached.sessions.every(s => Array.isArray(s?.alloc?.rounds) && Array.isArray(s.rounds))) setSnapshot(cached, true);
     const first = refresh().catch(error => {
       if (!snapshot) toast(error.message, "error");
       throw error;
@@ -240,7 +241,8 @@
   // ---------- 本机报名凭证 ----------
   function getMine() {
     const list = store.get(MINE_KEY, []);
-    return Array.isArray(list) ? list.filter(x => x && x.id && x.token) : [];
+    // 旧版记录只有第一 / 第二志愿：转换成志愿顺序
+    return Array.isArray(list) ? list.filter(x => x && x.id && x.token).map(x => (Array.isArray(x.prefs) ? x : { ...x, prefs: [x.gameId, x.altGameId].filter(Boolean), rounds: [] })) : [];
   }
   function saveMine(entry) {
     const list = getMine().filter(x => x.id !== entry.id);
@@ -254,37 +256,58 @@
     store.set(MINE_KEY, getMine().map(x => (x.id === id ? { ...x, ...patch } : x)));
   }
   // 在快照里找到某条报名的分桌结果
+  // 返回这条报名在每一轮的结果：[{round, label, kind:'seat'|'none'|'skip', gameId, table, rank, short}]
   function placementOf(session, signupId) {
-    if (!session?.alloc) return null;
-    for (const [gameId, g] of Object.entries(session.alloc.games)) {
-      for (const t of g.tables) {
-        const p = t.players.find(x => x.id === signupId);
-        if (p) return { kind: "seat", gameId, table: t.no, short: t.short, via: p.via, player: p, game: g };
+    if (!session?.alloc?.rounds) return null;
+    let found = false;
+    const out = session.alloc.rounds.map(r => {
+      const label = roundLabel(r, session.alloc.rounds.length);
+      for (const [gameId, g] of Object.entries(r.games)) {
+        for (const t of g.tables) {
+          const p = t.players.find(x => x.id === signupId);
+          if (p) {
+            found = true;
+            return { round: r.index, label, kind: "seat", gameId, table: t.no, rank: p.rank, short: t.short, player: p };
+          }
+        }
       }
-      const wi = g.waitlist.findIndex(x => x.id === signupId);
-      if (wi >= 0) return { kind: "wait", gameId, position: wi + 1, player: g.waitlist[wi], game: g };
-    }
-    const o = (session.alloc.orphans || []).find(x => x.id === signupId);
-    if (o) return { kind: "orphan", player: o };
-    return null;
+      const u = r.unassigned.find(x => x.id === signupId);
+      if (u) {
+        found = true;
+        return { round: r.index, label, kind: "none", player: u };
+      }
+      return { round: r.index, label, kind: "skip" };
+    });
+    return found ? out : null;
   }
-  function placementText(pl) {
-    if (!pl) return "未找到（可能已被取消）";
+  function roundLabel(r, total) {
+    return total > 1 ? `第${r.index}轮` : "本场";
+  }
+  function placementLine(pl) {
+    if (pl.kind === "skip") return `${pl.label}：不参加`;
+    if (pl.kind === "none") return `${pl.label}：暂未成桌（等更多人报名，或现场协调）`;
     const name = gameById(pl.gameId)?.name || "";
-    if (pl.kind === "wait") return `${name} · 候补第 ${pl.position} 位`;
-    if (pl.kind === "orphan") return "所选游戏已下架，请修改报名";
-    const via = pl.via === "alt" ? "（第二志愿）" : "";
-    return pl.short > 0 ? `${name}${via} · 第 ${pl.table} 桌，还差 ${pl.short} 人成桌` : `${name}${via} · 第 ${pl.table} 桌`;
+    return `${pl.label}：${name} 第 ${pl.table} 桌${pl.rank > 1 ? `（第 ${pl.rank} 志愿）` : ""}`;
+  }
+  function placementText(list) {
+    if (!list) return "未找到（可能已被取消）";
+    return list.map(placementLine).join("；");
   }
 
   // ---------- 状态文字 ----------
-  function seatInfo(g, gameAlloc) {
-    if (!gameAlloc) return { tone: "idle", text: `${g.min}–${g.max} 人`, short: "" };
-    const a = gameAlloc;
-    if (a.status === "full") return { tone: "full", text: "满员 · 可排候补", short: "满员·可候补" };
-    if (a.status === "empty") return { tone: "idle", text: `等你开桌 · ${a.min} 人成桌`, short: "等你开桌" };
-    if (a.status === "forming") return { tone: "forming", text: `已有 ${a.count} 人 · 还差 ${a.need} 人成桌`, short: `差${a.need}人成桌` };
-    return { tone: "ok", text: `已成桌 · 余 ${a.seatsLeft} 座`, short: `余${a.seatsLeft}座` };
+  // 一款游戏在某场的状态：各轮里是否已成桌 + 有多少人把它排进了志愿
+  function seatInfo(g, session) {
+    const it = session?.alloc?.interest?.[g.id];
+    if (!it) return { tone: "idle", text: `${g.min}–${g.max} 人`, short: "" };
+    const rounds = session.alloc.rounds.filter(r => r.games[g.id] && r.games[g.id].tables.length).map(r => r.index);
+    const multi = session.alloc.rounds.length > 1;
+    if (rounds.length) {
+      const where = multi ? `第${rounds.join("、")}轮` : "";
+      return { tone: "ok", text: `${where}已成桌 · 首选 ${it.first} · 意向 ${it.any} 人`, short: multi ? `${where}成桌` : "已成桌" };
+    }
+    if (it.any >= g.min) return { tone: "forming", text: `首选 ${it.first} · 意向 ${it.any} 人 · 有望成桌`, short: "有望成桌" };
+    if (it.any > 0) return { tone: "forming", text: `意向 ${it.any} 人 · 还差 ${g.min - it.any} 人`, short: `差${g.min - it.any}人` };
+    return { tone: "idle", text: `等你开桌 · ${g.min} 人成桌`, short: "等你开桌" };
   }
   function sessionLabel(s) {
     return { open: "报名中", live: "进行中", ended: "已结束", cancelled: "停办" }[s.status] || "";
@@ -439,8 +462,7 @@
   }
 
   function cardHtml(g, s) {
-    const a = s?.alloc?.games?.[g.id];
-    const info = a ? seatInfo(g, a) : null;
+    const info = s?.alloc ? seatInfo(g, s) : null;
     const link = s && s.status === "open" && s.gameIds.includes(g.id) ? `/signup?session=${encodeURIComponent(s.id)}&game=${encodeURIComponent(g.id)}` : `/signup?game=${encodeURIComponent(g.id)}`;
     return `<article class="gcard" style="--c:${color(g)}" data-game="${esc(g.id)}">
       <button class="stretched" type="button" data-open="${esc(g.id)}" aria-label="查看「${esc(g.name)}」介绍和教学视频"></button>
@@ -548,6 +570,8 @@
     updateMine,
     placementOf,
     placementText,
+    placementLine,
+    roundLabel,
     seatInfo,
     sessionLabel,
     icon,

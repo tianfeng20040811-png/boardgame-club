@@ -191,7 +191,7 @@
     title.textContent = `${B.fmtDate(s.date)} · ${s.time} · ${loc}`;
     setDigits(digits, left, false);
     const count = s.alloc?.totals?.signups ?? 0;
-    foot.innerHTML = s.fallback ? "正在连接服务器获取报名情况…" : `报名开放至开局前 · 已报名 <b>${count}</b> 人${nextOpen && nextOpen !== s ? "" : ""}`;
+    foot.innerHTML = s.fallback ? "正在连接服务器获取报名情况…" : `${(s.rounds || []).map(r => `第${r.index}轮 ${r.start}–${r.end}`).join(" · ")} · 已报名 <b>${count}</b> 人`;
   }
   function setDigits(el, t, live) {
     const parts = el.querySelectorAll("b");
@@ -225,42 +225,48 @@
     requestAnimationFrame(step);
   }
   function renderStats(s) {
-    const games = s?.gameIds?.length || 0;
     const a = s?.alloc;
-    const seats = a ? Object.values(a.games).reduce((n, g) => n + g.seatsLeft, 0) : 0;
-    const vals = { signups: a?.totals.signups || 0, tables: a?.totals.tablesReady || 0, seats, games };
-    document.querySelectorAll("[data-stat]").forEach(el => animateNumber(el, vals[el.dataset.stat]));
+    const vals = { signups: a?.totals.signups || 0, tables: a?.totals.tablesReady || 0, rounds: s?.rounds?.length || 2, games: s?.gameIds?.length || 0 };
+    document.querySelectorAll("[data-stat]").forEach(el => animateNumber(el, vals[el.dataset.stat] ?? 0));
   }
 
   function renderBoard(snap, s) {
     const box = $("#boardList");
     const sub = $("#boardSub");
     if (!s) return;
-    sub.textContent = `${B.fmtDate(s.date)} ${s.time} · ${s.location} · ${s.status === "open" ? "按报名先后入座，满员自动转第二志愿或候补" : s.status === "live" ? "活动进行中，以下为最终分桌" : s.status === "cancelled" ? "本场停办" : ""}`;
+    const rounds = s.alloc?.rounds || [];
+    const roundsText = rounds.map(r => `第${r.index}轮 ${r.start}–${r.end}`).join(" · ");
+    sub.textContent = `${B.fmtDate(s.date)} · ${s.location} · ${roundsText}。${s.status === "open" ? "每人按志愿顺序分桌，凑不齐的游戏会把人顺延到下一个志愿；每轮换一款不重复的游戏。" : s.status === "live" ? "活动进行中，以下为锁定后的分桌。" : ""}`;
     if (s.status === "cancelled") {
       box.innerHTML = `<div class="board-empty"><b>${esc(B.fmtDate(s.date))} 停办</b>${esc(s.note || "这一周暂停一次")}${snap.sessions[1] ? ` · 下一场：${esc(B.fmtDate(snap.sessions.find(x => x.status === "open")?.date || snap.sessions[1].date))}` : ""}</div>`;
       return;
     }
+    const interest = s.alloc?.interest || {};
     const rows = (s.allGameIds || s.gameIds)
-      .map(id => ({ g: B.gameById(id), a: s.alloc.games[id] }))
-      .filter(x => x.g && x.a)
-      .sort((x, y) => y.a.count - x.a.count || x.g.name.localeCompare(y.g.name, "zh"));
+      .map(id => ({ g: B.gameById(id), it: interest[id] || { first: 0, any: 0 } }))
+      .filter(x => x.g)
+      .sort((x, y) => y.it.any - x.it.any || y.it.first - x.it.first || x.g.name.localeCompare(y.g.name, "zh"));
     if (!rows.length) {
       box.innerHTML = `<div class="board-empty"><b>本场还没有开放游戏</b>组织者稍后会更新</div>`;
       return;
     }
     const href = id => `/signup?session=${encodeURIComponent(s.id)}&game=${encodeURIComponent(id)}`;
     box.innerHTML = rows
-      .map(({ g, a }) => {
-        const info = B.seatInfo(g, a);
-        const pct = Math.min(100, (a.count / a.capacity) * 100);
-        const minPct = Math.min(100, (a.min / a.capacity) * 100);
+      .map(({ g, it }) => {
+        const info = B.seatInfo(g, s);
+        const pct = Math.min(100, (it.any / Math.max(g.min, 1)) * 100);
+        const perRound = rounds.map(r => {
+          const ga = r.games[g.id];
+          const n = ga ? ga.count : 0;
+          return `<span class="round-chip ${n ? "on" : ""}">第${r.index}轮 ${n ? `${n} 人·${ga.tables.length} 桌` : "—"}</span>`;
+        });
+        const open = s.gameIds.includes(g.id);
         return `<article class="board-row" style="--c:${B.color(g)}">
           <div class="board-icon">${B.icon(g, 26)}</div>
-          <div class="board-name"><b>${esc(g.name)}</b><small>${g.min}–${g.max} 人 · 约 ${g.minutes} 分钟${a.copies > 1 ? ` · ${a.copies} 套` : ""}</small></div>
-          <div class="board-meter"><div class="meter" role="img" aria-label="${esc(g.name)}已报名 ${a.count} 人，共 ${a.capacity} 座"><span style="width:${pct}%"></span><i style="left:${minPct}%" title="成桌最少人数"></i></div>
-            <div class="meter-txt"><span><span class="mono">${a.count}</span> / ${a.capacity} 人${a.waitlist.length ? ` · 候补 ${a.waitlist.length}` : ""}</span><span>${esc(info.text)}</span></div></div>
-          <div class="board-act"><span class="pill pill-${info.tone}">${esc(info.short || "可报名")}</span>${s.status === "open" && a.open !== false ? `<a class="btn btn-sm ${a.status === "forming" ? "btn-primary" : ""}" href="${href(g.id)}">${a.status === "full" ? "候补" : "加入"}</a>` : ""}</div>
+          <div class="board-name"><b>${esc(g.name)}</b><small>${g.min}–${g.max} 人 · 约 ${g.minutes} 分钟</small></div>
+          <div class="board-meter"><div class="meter" role="img" aria-label="${esc(g.name)}：意向 ${it.any} 人，最少 ${g.min} 人成桌"><span style="width:${pct}%"></span><i style="left:100%" title="成桌最少人数"></i></div>
+            <div class="meter-txt"><span>首选 <span class="mono">${it.first}</span> · 意向 <span class="mono">${it.any}</span> 人</span><span>${rounds.length > 1 ? perRound.join("") : esc(info.text)}</span></div></div>
+          <div class="board-act"><span class="pill pill-${info.tone}">${esc(info.short || "可报名")}</span>${s.status === "open" && open ? `<a class="btn btn-sm ${info.tone === "forming" ? "btn-primary" : ""}" href="${href(g.id)}">加入</a>` : ""}</div>
         </article>`;
       })
       .join("");
@@ -284,14 +290,13 @@
 
   function renderMine(snap) {
     const box = $("#mine");
-    const mine = B.getMine();
     const rows = [];
-    for (const m of mine) {
+    for (const m of B.getMine()) {
       const s = snap.sessions.find(x => x.id === m.sessionId);
       if (!s) continue;
       const pl = B.placementOf(s, m.id);
       if (!pl) continue;
-      rows.push(`<div class="mine-item"><b>✔ 已报名</b><span>${esc(B.fmtDate(s.date))} · ${esc(B.placementText(pl))}</span><a href="/signup#mine">查看</a></div>`);
+      rows.push(`<div class="mine-item"><b>✔ 已报名</b><span>${esc(B.fmtDate(s.date))} · ${esc(B.placementText(pl))}</span><a href="/me">我的报名</a></div>`);
       if (rows.length >= 2) break;
     }
     box.hidden = !rows.length;
