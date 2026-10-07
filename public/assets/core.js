@@ -329,7 +329,8 @@
     el.className = `toast toast-${kind}`;
     el.textContent = message;
     host.appendChild(el);
-    requestAnimationFrame(() => el.classList.add("show"));
+    void el.offsetWidth;
+    el.classList.add("show");
     setTimeout(() => {
       el.classList.remove("show");
       setTimeout(() => el.remove(), 300);
@@ -350,10 +351,10 @@
     });
     document.body.appendChild(wrap);
     document.body.classList.add("modal-open");
-    requestAnimationFrame(() => {
-      wrap.classList.add("show");
-      $(".modal", wrap).focus();
-    });
+    // 先强制排版一次再加 show，淡入动画照常生效；不依赖 requestAnimationFrame（页面在后台时它会暂停，弹窗会卡在透明状态）
+    void wrap.offsetWidth;
+    wrap.classList.add("show");
+    $(".modal", wrap).focus({ preventScroll: true });
     return wrap;
   }
   function closeModal() {

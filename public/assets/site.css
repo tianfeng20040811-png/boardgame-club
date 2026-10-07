@@ -136,7 +136,9 @@ main, .footer, .announce { position: relative; z-index: 2; }
 .gcard-foot { display: flex; gap: 8px; align-items: center; margin-top: 4px; }
 .gcard-foot .btn { flex: 1; }
 .gcard-status { position: absolute; top: 16px; right: 16px; }
-.gcard .stretched { position: absolute; inset: 0; z-index: 0; border-radius: inherit; }
+/* 覆盖整张卡片的透明点击层：必须清掉按钮默认的灰底和边框，否则会把卡片内容盖住 */
+.gcard .stretched { position: absolute; top: 0; right: 0; bottom: 0; left: 0; z-index: 0; margin: 0; padding: 0; border: 0; border-radius: inherit; background: transparent; color: inherit; cursor: pointer; -webkit-appearance: none; appearance: none; }
+.gcard .stretched:focus-visible { outline: 2px solid var(--c); outline-offset: 2px; }
 .gcard .gcard-foot, .gcard .gcard-status { position: relative; z-index: 1; }
 .gcard .gcard-status { position: absolute; }
 .gcard .video-tag { display: inline-flex; align-items: center; gap: 4px; color: var(--magenta); font-size: 12.5px; font-weight: 700; }
@@ -178,7 +180,7 @@ main, .footer, .announce { position: relative; z-index: 2; }
 .search svg { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); color: var(--muted); }
 .lib-count { color: var(--muted); font-size: 14px; margin-bottom: 12px; }
 .lib-empty { padding: 40px; text-align: center; color: var(--text-2); border: 1px dashed var(--line-strong); border-radius: 16px; }
-@media (max-width: 560px) { .filters { top: 54px; padding: 10px; margin: 14px calc(var(--gutter) * -0.5) 18px; } }
+@media (max-width: 560px) { .filters { position: static; padding: 10px; margin: 14px calc(var(--gutter) * -0.5) 18px; } }
 
 .group-h { grid-column: 1 / -1; display: flex; align-items: baseline; gap: 10px; margin: 18px 0 2px; font-size: 18px; font-weight: 900; letter-spacing: 0.12em; }
 .group-h:first-child { margin-top: 0; }

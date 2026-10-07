@@ -40,6 +40,9 @@
     <stop offset=".55" stop-color="#a3140f" stop-opacity=".12"/>
     <stop offset="1" stop-color="#a3140f" stop-opacity="0"/>
   </radialGradient>
+  <radialGradient id="nezha-g-back" cx="0.5" cy="0.5" r="0.5">
+    <stop offset="0" stop-color="#ffb000" stop-opacity=".3"/><stop offset=".5" stop-color="#ff3b1f" stop-opacity=".12"/><stop offset="1" stop-color="#ff3b1f" stop-opacity="0"/>
+  </radialGradient>
   <radialGradient id="nezha-g-ground" cx="0.5" cy="0.5" r="0.5">
     <stop offset="0" stop-color="#ffb000" stop-opacity=".65"/>
     <stop offset=".45" stop-color="#ff3b1f" stop-opacity=".3"/>
@@ -87,7 +90,7 @@
     <stop offset="0" stop-color="#ffb000" stop-opacity=".5"/><stop offset=".45" stop-color="#ff7a1a" stop-opacity=".14"/><stop offset="1" stop-color="#ff3b1f" stop-opacity="0"/>
   </radialGradient>
   <radialGradient id="nezha-g-uplight" gradientUnits="userSpaceOnUse" cx="120" cy="372" r="86">
-    <stop offset="0" stop-color="#ff9a1a" stop-opacity=".5"/><stop offset=".55" stop-color="#ff3b1f" stop-opacity=".12"/><stop offset="1" stop-color="#ff3b1f" stop-opacity="0"/>
+    <stop offset="0" stop-color="#ff9a1a" stop-opacity=".62"/><stop offset=".55" stop-color="#ff3b1f" stop-opacity=".12"/><stop offset="1" stop-color="#ff3b1f" stop-opacity="0"/>
   </radialGradient>
   <linearGradient id="nezha-g-band" x1="0" y1="1" x2="1" y2="0">
     <stop offset="0" stop-color="#4a0708"/><stop offset=".6" stop-color="#8e1511"/><stop offset="1" stop-color="#d42a1a"/>
@@ -135,8 +138,8 @@
   <path id="nezha-p-head" d="M99,72C97,80 97,89 100,96C102,101 105,105 109,107.5C113,108.5 117,107 121,104C126,100 130,94 131,88L132,80C132,68 125,60 115,60C106,60 100,65 99,72Z"/>
   <path id="nezha-p-ear" d="M130,82C134,79 137,84 135,89C134,92 131,93 129.5,91.5Z"/>
   <path id="nezha-p-hair" d="M97,82L95.5,74C95,64 101,56 112,53.8L120.5,44.5L118,53.4C126,53.5 132,56.5 136,63L148,60L138.5,69L151,72L138,76L146,84L135,81.5L134.5,90L130.5,83L128,79.5L125,85L122.5,78.5L118.5,84L116,77.5L111.5,84.5L109.5,77.5L104.5,84L103,78L99.5,85.5Z"/>
-  <path id="nezha-p-bunL" d="M91,47C91,40 96,35.5 102,35.5C104,35.5 106,36 107.5,37L118,32L111,40.5C112,42.5 112.5,44.5 112.5,46.5L121,47L111.5,51C109.5,55 105.5,57 101.5,57C95.5,57 91,53 91,47Z"/>
-  <path id="nezha-p-bunR" d="M122,44C122,37 127,32.5 133,32.5C135,32.5 137,33 138.5,34L149,29L142,37.5C143,39.5 143.5,41.5 143.5,43.5L152,44L142.5,48C140.5,52 136.5,54 132.5,54C126.5,54 122,50 122,44Z"/>
+  <path id="nezha-p-bunL" d="M96.6,53.5A8.5,8.5 0 0 1 93.1,45.5Q91.1,44.1 93.5,36.9Q95.3,38.8 94.6,42A8.5,8.5 0 0 1 96.2,39.9Q95.1,36.6 103.3,32.1Q103,36 99.9,38.4A8.5,8.5 0 0 1 102.4,38Q104.3,34.2 114.4,37.1Q110.5,40 106.1,39.7A8.5,8.5 0 0 1 107.7,40.7Q111.8,38.7 118,46.5Q112.8,46.7 109.4,44.1A8.5,8.5 0 0 1 110,46.4Q113.5,47.4 113.3,55.7Q109.7,53.5 109,50A8.5,8.5 0 0 1 108.2,51.7Q109.4,53.7 105.4,58.4Q104,56.1 105.4,53.8A8.5,8.5 0 0 1 96.6,53.5Z"/>
+  <path id="nezha-p-bunR" d="M127.7,50.3A8.3,8.3 0 0 1 124.3,42.5Q122.3,41.1 124.6,34.1Q126.4,36 125.7,39.1A8.3,8.3 0 0 1 127.3,37Q126.3,33.7 134.2,29.3Q134,33.2 131,35.6A8.3,8.3 0 0 1 133.4,35.2Q135.3,31.4 145.3,34.2Q141.4,37.1 137,36.8A8.3,8.3 0 0 1 138.6,37.8Q142.6,35.9 148.8,43.5Q143.6,43.7 140.2,41.1A8.3,8.3 0 0 1 140.8,43.4Q144.3,44.4 144.2,52.6Q140.5,50.4 139.8,46.9A8.3,8.3 0 0 1 139,48.6Q140.3,50.6 136.3,55.2Q135,52.9 136.3,50.6A8.3,8.3 0 0 1 127.7,50.3Z"/>
   <g id="nezha-sil"><use href="#nezha-p-legL"/><use href="#nezha-p-legR"/><use href="#nezha-p-shinL"/><use href="#nezha-p-shinR"/><use href="#nezha-p-footL"/><use href="#nezha-p-footR"/><use href="#nezha-p-skirtR"/><use href="#nezha-p-torso"/><use href="#nezha-p-belt"/><use href="#nezha-p-skirtF"/><use href="#nezha-p-skirtL"/><use href="#nezha-p-uarmR"/><use href="#nezha-p-farmR"/><use href="#nezha-p-bracerR"/><use href="#nezha-p-fistR"/><use href="#nezha-p-uarmL"/><use href="#nezha-p-farmL"/><use href="#nezha-p-bracerL"/><use href="#nezha-p-fistL"/><use href="#nezha-p-neck"/><use href="#nezha-p-head"/><use href="#nezha-p-ear"/><use href="#nezha-p-hair"/><use href="#nezha-p-bunL"/><use href="#nezha-p-bunR"/></g>
 
   <!-- rim-light masks: silhouette minus an offset copy leaves a thin edge sliver -->
@@ -153,6 +156,7 @@
 
 <!-- ===== 1. backlight halo behind the figure ===== -->
 <ellipse cx="118" cy="190" rx="108" ry="185" fill="url(#nezha-g-halo)"/>
+<ellipse cx="120" cy="118" rx="64" ry="78" fill="url(#nezha-g-back)"/><!-- hot core behind head/shoulders -->
 
 <!-- ===== 2. ground glow ===== -->
 <ellipse cx="120" cy="385" rx="86" ry="7" fill="url(#nezha-g-ground)"/>
@@ -192,7 +196,7 @@
 
 <!-- ===== 5. 风火轮 fire wheels (behind the feet) ===== -->
 <g filter="url(#nezha-f-bloom)">
-  <g transform="translate(88 367) rotate(-6) scale(0.64 1)">
+  <g transform="translate(88 367) rotate(-11) scale(0.6 .97)">
     <circle r="21" fill="url(#nezha-g-wglow)"/>
     <circle r="15" fill="#1a0705"/>
     <g class="nezha-fx nezha-spin">
@@ -207,7 +211,7 @@
   </g>
 </g>
 <g filter="url(#nezha-f-bloom)">
-  <g transform="translate(153 367) rotate(6) scale(0.64 1)">
+  <g transform="translate(153 367) rotate(-3) scale(0.7 1.03)">
     <circle r="21" fill="url(#nezha-g-wglow)"/>
     <circle r="15" fill="#1a0705"/>
     <g class="nezha-fx nezha-spin">
@@ -286,7 +290,7 @@
   <use href="#nezha-p-bunL" fill="url(#nezha-g-hair)"/>
   <use href="#nezha-p-bunR" fill="url(#nezha-g-hair)"/>
   <use href="#nezha-p-hair" fill="url(#nezha-g-hair)"/>
-  <path d="M104,60C110,58 118,57 126,60M100,68C106,64 114,62 122,63M96,48C95,42 101,39 105,42C108,45 104,50 100.5,47.5M127,45C126,39 132,36 136,39C139,42 135,47 131.5,44.5" fill="none" stroke="#4a1410" stroke-width=".8"/>
+  <path d="M104,60C110,58 118,57 126,60M100,68C106,64 114,62 122,63M96,49C94,42 101,38.5 106,41.5C109,45 105,50 101,47.5M127,46C125,39 132,35.5 137,38.5C140,42 136,47 132,44.5" fill="none" stroke="#4a1410" stroke-width=".8"/>
   <!-- crimson bun ties -->
   <path d="M93.5,54C97.5,57.5 104,58 109.5,54.5M124,51.5C128,55 134,55 139,51.5" fill="none" stroke="#c8231a" stroke-width="2"/>
   <path d="M95.5,54.8C99.5,57 104,57.2 108.5,55M126,52.4C130,54.6 134,54.6 137.5,52.2" fill="none" stroke="#ffb000" stroke-width=".6" opacity=".8"/>
