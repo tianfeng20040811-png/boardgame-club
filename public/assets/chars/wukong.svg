@@ -1,0 +1,526 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 400" width="240" height="400">
+  <!-- 孙悟空 · cinematic backlit hero (original drawing).
+       Each body part = gold rim crescent (upper-left) + warm fall-off + dark body (+ red bounce on right edges). -->
+  <defs>
+    <style>
+    .wukong-fx{transform-box:fill-box}
+    .wukong-aura{transform-origin:50% 50%;animation:wukong-pulse 4s ease-in-out infinite}
+    @keyframes wukong-pulse{0%,100%{opacity:1}50%{opacity:.7}}
+    .wukong-rays{transform-origin:50% 50%;animation:wukong-rays 6s ease-in-out infinite}
+    @keyframes wukong-rays{0%,100%{opacity:1}50%{opacity:.45}}
+    .wukong-ring{transform-origin:50% 50%;animation:wukong-ring 2.2s ease-out infinite}
+    @keyframes wukong-ring{0%{transform:scale(.5);opacity:0}20%{opacity:.9}100%{transform:scale(1.5);opacity:0}}
+    .wukong-cape{transform-origin:9% 2%;animation:wukong-sway 5s ease-in-out infinite}
+    @keyframes wukong-sway{0%,100%{transform:rotate(0deg)}50%{transform:rotate(1.6deg) skewY(-.8deg)}}
+    .wukong-sash{transform-origin:0% 30%;animation:wukong-flap 2.6s ease-in-out infinite}
+    @keyframes wukong-flap{0%,100%{transform:rotate(0deg) scaleX(1)}50%{transform:rotate(-5deg) scaleX(.94)}}
+    .wukong-apron{transform-origin:50% 0%;animation:wukong-apron 3.2s ease-in-out infinite}
+    @keyframes wukong-apron{0%,100%{transform:skewX(0deg)}50%{transform:skewX(-4deg)}}
+    .wukong-mane{transform-origin:10% 50%;animation:wukong-mane 3.4s ease-in-out infinite}
+    @keyframes wukong-mane{0%,100%{transform:skewY(0deg)}50%{transform:skewY(2.5deg) scaleX(1.03)}}
+    .wukong-sglow{animation:wukong-sglow 2.4s ease-in-out infinite}
+    @keyframes wukong-sglow{0%,100%{opacity:.35}50%{opacity:.85}}
+    .wukong-streak{transform-origin:50% 50%;animation:wukong-streak 2.4s linear infinite}
+    @keyframes wukong-streak{0%{transform:translateX(-24px);opacity:0}25%,70%{opacity:1}100%{transform:translateX(24px);opacity:0}}
+    .wukong-eyes{animation:wukong-eyes 3s ease-in-out infinite}
+    @keyframes wukong-eyes{0%,100%{opacity:1}45%{opacity:.72}55%{opacity:1}}
+    .wukong-glint{transform-origin:50% 50%;animation:wukong-glint 3.6s ease-in-out infinite}
+    @keyframes wukong-glint{0%,100%{transform:scale(.35) rotate(0deg);opacity:.25}50%{transform:scale(1.15) rotate(45deg);opacity:1}}
+    .wukong-ember{animation:wukong-ember 5s linear infinite}
+    @keyframes wukong-ember{0%{transform:translate(0,0);opacity:0}15%{opacity:.95}80%{opacity:.55}100%{transform:translate(12px,-34px);opacity:0}}
+    .wukong-cloud{animation:wukong-cloud 6s ease-in-out infinite}
+    @keyframes wukong-cloud{0%,100%{transform:translateX(0)}50%{transform:translateX(3px)}}
+    .wukong-shock{transform-origin:50% 50%;animation:wukong-shock 3s ease-out infinite}
+    @keyframes wukong-shock{0%{transform:scale(.35);opacity:0}15%{opacity:.85}100%{transform:scale(1.32);opacity:0}}
+    .wukong-zap{animation:wukong-zap 2.2s linear infinite}
+    @keyframes wukong-zap{0%,100%{opacity:0}6%{opacity:1}10%{opacity:.2}14%{opacity:1}26%{opacity:0}}
+    @media (prefers-reduced-motion: reduce){.wukong-fx,.wukong-fx *{animation:none !important}}
+    </style>
+    <!-- backlight halo -->
+    <radialGradient id="wukong-g-aura" cx="124" cy="128" r="114" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ffd77a" stop-opacity=".55"/>
+      <stop offset=".3" stop-color="#ff9a3a" stop-opacity=".26"/>
+      <stop offset=".68" stop-color="#c4161c" stop-opacity=".09"/>
+      <stop offset="1" stop-color="#c4161c" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="wukong-g-hot" cx="126" cy="80" r="50" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#fff0b8" stop-opacity=".7"/>
+      <stop offset=".5" stop-color="#ffc93c" stop-opacity=".22"/>
+      <stop offset="1" stop-color="#ffc93c" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="wukong-g-ray" cx="126" cy="80" r="110" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ffe6a0" stop-opacity=".3"/>
+      <stop offset=".6" stop-color="#ffb04a" stop-opacity=".08"/>
+      <stop offset="1" stop-color="#ffb04a" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="wukong-g-spill">
+      <stop offset="0" stop-color="#ffb04a" stop-opacity=".32"/>
+      <stop offset="1" stop-color="#ffb04a" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="wukong-g-core">
+      <stop offset="0" stop-color="#fff0b8" stop-opacity=".75"/>
+      <stop offset="1" stop-color="#ffc93c" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="wukong-g-ground">
+      <stop offset="0" stop-color="#ffc93c" stop-opacity=".6"/>
+      <stop offset=".55" stop-color="#ff8a2a" stop-opacity=".2"/>
+      <stop offset="1" stop-color="#c4161c" stop-opacity="0"/>
+    </radialGradient>
+    <!-- rim light: bright gold at the top, dimming toward the feet -->
+    <linearGradient id="wukong-g-rimG" x1="0" y1="30" x2="0" y2="390" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#fff4c4"/>
+      <stop offset=".36" stop-color="#ffc93c"/>
+      <stop offset=".7" stop-color="#cf7e2a"/>
+      <stop offset="1" stop-color="#5e2c10"/>
+    </linearGradient>
+    <linearGradient id="wukong-g-rimW" x1="0" y1="30" x2="0" y2="390" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#8a5418"/>
+      <stop offset=".5" stop-color="#5a3010"/>
+      <stop offset="1" stop-color="#2e140a"/>
+    </linearGradient>
+    <linearGradient id="wukong-g-rimR" x1="0" y1="30" x2="0" y2="390" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ff7044"/>
+      <stop offset=".5" stop-color="#d0261c"/>
+      <stop offset="1" stop-color="#6e0c10"/>
+    </linearGradient>
+    <!-- shadow-side materials -->
+    <linearGradient id="wukong-g-head" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#3a2416"/>
+      <stop offset="1" stop-color="#0f0806"/>
+    </linearGradient>
+    <radialGradient id="wukong-g-face" cx=".3" cy=".55" r=".75">
+      <stop offset="0" stop-color="#7a482a"/>
+      <stop offset=".55" stop-color="#3e2214"/>
+      <stop offset="1" stop-color="#1e100a"/>
+    </radialGradient>
+    <linearGradient id="wukong-g-fur" x1="0" y1="0" x2=".8" y2="1">
+      <stop offset="0" stop-color="#3e2816"/>
+      <stop offset=".5" stop-color="#1c110b"/>
+      <stop offset="1" stop-color="#0d0706"/>
+    </linearGradient>
+    <linearGradient id="wukong-g-armor" x1="0" y1="0" x2=".9" y2="1">
+      <stop offset="0" stop-color="#4e3814"/>
+      <stop offset=".45" stop-color="#211508"/>
+      <stop offset="1" stop-color="#0c0705"/>
+    </linearGradient>
+    <linearGradient id="wukong-g-pants" x1="0" y1="0" x2="1" y2=".6">
+      <stop offset="0" stop-color="#2e1416"/>
+      <stop offset=".6" stop-color="#170a0c"/>
+      <stop offset="1" stop-color="#0e0607"/>
+    </linearGradient>
+    <linearGradient id="wukong-g-cloth" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#5a0d12"/>
+      <stop offset="1" stop-color="#1c0508"/>
+    </linearGradient>
+    <linearGradient id="wukong-g-gold" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff4c2"/>
+      <stop offset=".35" stop-color="#ffc93c"/>
+      <stop offset=".75" stop-color="#b97a14"/>
+      <stop offset="1" stop-color="#6a3f08"/>
+    </linearGradient>
+    <linearGradient id="wukong-g-iron" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#6a4a1c"/>
+      <stop offset=".3" stop-color="#1e140b"/>
+      <stop offset=".75" stop-color="#0a0706"/>
+      <stop offset="1" stop-color="#2a1508"/>
+    </linearGradient>
+    <linearGradient id="wukong-g-cape" x1="140" y1="100" x2="232" y2="240" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#1a0205"/>
+      <stop offset=".5" stop-color="#4e070c"/>
+      <stop offset=".85" stop-color="#a0121a"/>
+      <stop offset="1" stop-color="#d8241e"/>
+    </linearGradient>
+    <radialGradient id="wukong-g-capeGlow" cx="236" cy="196" r="104" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ff5a30" stop-opacity=".5"/>
+      <stop offset="1" stop-color="#ff5a30" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="wukong-g-sash" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#3a060a"/>
+      <stop offset="1" stop-color="#c8221c"/>
+    </linearGradient>
+    <linearGradient id="wukong-g-mist" x1="0" y1="364" x2="0" y2="392" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#c47a30"/>
+      <stop offset=".35" stop-color="#6a2c12"/>
+      <stop offset="1" stop-color="#1e0a09"/>
+    </linearGradient>
+    <linearGradient id="wukong-g-flare" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#ffe9a0" stop-opacity="0"/>
+      <stop offset=".5" stop-color="#fff6d0" stop-opacity=".95"/>
+      <stop offset="1" stop-color="#ffe9a0" stop-opacity="0"/>
+    </linearGradient>
+    <!-- glow filters -->
+    <filter id="wukong-f-glow" filterUnits="userSpaceOnUse" x="-40" y="-40" width="320" height="480">
+      <feGaussianBlur stdDeviation="1.8" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="wukong-f-bloom" filterUnits="userSpaceOnUse" x="-40" y="-40" width="320" height="480">
+      <feGaussianBlur stdDeviation="5" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="b"/></feMerge>
+    </filter>
+    <!-- body part shapes + rim-light clip masks -->
+    <path id="wukong-p-mane" d="M108 47 C108 39 112 34 116 32 C115 29 115 26 117 22 C120 25 122 28 124 30 C127 27 131 23 137 21 C136 25 137 28 138 30 C146 30 154 33 160 37 C168 37 178 35 188 33 C178 41 166 46 157 49 C166 51 178 52 192 52 C178 57 164 60 154 62 C162 65 174 69 186 72 C170 74 158 74 149 76 C156 80 164 86 172 92 C160 89 148 88 142 88 C145 92 147 96 148 100 L132 92 L126 60 Z"/>
+    <clipPath id="wukong-c-mane"><use href="#wukong-p-mane"/></clipPath>
+    <clipPath id="wukong-k-mane"><use href="#wukong-p-mane" transform="translate(-1.2 0)"/></clipPath>
+    <path id="wukong-p-legF" d="M100 190 C94 214 88 246 86 274 C84 292 83 306 83 322 L106 322 C107 306 110 288 113 268 C116 246 120 222 122 196 Z"/>
+    <clipPath id="wukong-c-legF"><use href="#wukong-p-legF"/></clipPath>
+    <clipPath id="wukong-k-legF"><use href="#wukong-p-legF" transform="translate(-1.2 0)"/></clipPath>
+    <path id="wukong-p-grvF" d="M84 318 L106 318 C106 336 104 352 103 368 L84 368 C83 352 83 336 84 318 Z"/>
+    <clipPath id="wukong-c-grvF"><use href="#wukong-p-grvF"/></clipPath>
+    <clipPath id="wukong-k-grvF"><use href="#wukong-p-grvF" transform="translate(-1.2 0)"/></clipPath>
+    <path id="wukong-p-bootF" d="M84 364 L103 364 C105 372 106 380 104 386 L72 386 C66 386 62 383 63 380 C64 377 68 377 71 378 C76 376 81 372 84 364 Z"/>
+    <clipPath id="wukong-c-bootF"><use href="#wukong-p-bootF"/></clipPath>
+    <clipPath id="wukong-k-bootF"><use href="#wukong-p-bootF" transform="translate(-1.2 0)"/></clipPath>
+    <path id="wukong-p-legN" d="M120 194 C124 220 129 250 134 276 C137 292 141 306 143 322 L168 322 C169 304 169 286 167 268 C164 242 157 214 146 190 Z"/>
+    <clipPath id="wukong-c-legN"><use href="#wukong-p-legN"/></clipPath>
+    <clipPath id="wukong-k-legN"><use href="#wukong-p-legN" transform="translate(-1.2 0)"/></clipPath>
+    <path id="wukong-p-grvN" d="M144 318 L168 318 C168 336 167 352 166 368 L148 368 C147 352 145 336 144 318 Z"/>
+    <clipPath id="wukong-c-grvN"><use href="#wukong-p-grvN"/></clipPath>
+    <clipPath id="wukong-k-grvN"><use href="#wukong-p-grvN" transform="translate(-1.2 0)"/></clipPath>
+    <path id="wukong-p-bootN" d="M148 364 L166 364 C169 371 172 379 174 386 L144 386 C139 386 136 383 137 380 C138 377 142 377 144 378 C146 374 147 370 148 364 Z"/>
+    <clipPath id="wukong-c-bootN"><use href="#wukong-p-bootN"/></clipPath>
+    <clipPath id="wukong-k-bootN"><use href="#wukong-p-bootN" transform="translate(-1.2 0)"/></clipPath>
+    <path id="wukong-p-neck" d="M113 84 C113 90 112 95 110 100 L136 100 C134 94 132 89 132 82 Z"/>
+    <clipPath id="wukong-c-neck"><use href="#wukong-p-neck"/></clipPath>
+    <path id="wukong-p-torso" d="M112 95 C104 98 95 100 89 105 C85 113 86 126 90 139 C93 154 97 168 100 180 L141 180 C143 166 148 150 153 137 C158 125 160 113 157 105 C150 100 142 97 134 95 C127 99 119 99 112 95 Z"/>
+    <clipPath id="wukong-c-torso"><use href="#wukong-p-torso"/></clipPath>
+    <path id="wukong-p-ear" d="M134 58 C141 54 148 58 147 65 C146 71 140 72 136 69 Z"/>
+    <clipPath id="wukong-c-ear"><use href="#wukong-p-ear"/></clipPath>
+    <clipPath id="wukong-k-ear"><use href="#wukong-p-ear" transform="translate(-1.2 0)"/></clipPath>
+    <path id="wukong-p-head" d="M122 42 C132 41 140 48 140 58 C141 68 137 78 130 84 C125 88 117 90 110 89 C105 88 102 85 101 82 C99 80 97 77 97 74 C96 72 96 70 97 69 C96 67 97 65 99 64 C101 63 103 62 104 61 C102 59 101 57 102 55 C105 47 112 42 122 42 Z"/>
+    <clipPath id="wukong-c-head"><use href="#wukong-p-head"/></clipPath>
+    <path id="wukong-p-whisk" d="M124 72 C130 69 138 71 146 73 L159 71 C153 77 149 80 145 82 L155 88 C145 88 136 87 130 85 C126 83 124 78 124 72 Z"/>
+    <clipPath id="wukong-c-whisk"><use href="#wukong-p-whisk"/></clipPath>
+    <clipPath id="wukong-k-whisk"><use href="#wukong-p-whisk" transform="translate(-1.2 0)"/></clipPath>
+    <path id="wukong-p-uarmF" d="M97 106 C89 102 80 106 78 115 C75 126 68 136 61 145 C59 151 66 156 72 153 C80 144 88 132 94 124 Z"/>
+    <clipPath id="wukong-c-uarmF"><use href="#wukong-p-uarmF"/></clipPath>
+    <path id="wukong-p-farmF" d="M61 148 C57 138 52 126 49 116 L60 113 C63 124 68 136 74 149 Z"/>
+    <clipPath id="wukong-c-farmF"><use href="#wukong-p-farmF"/></clipPath>
+    <clipPath id="wukong-k-farmF"><use href="#wukong-p-farmF" transform="translate(-1.2 0)"/></clipPath>
+    <path id="wukong-p-fistF" d="M45 103 C47 99 59 99 62 103 L63 114 C60 119 49 119 46 116 C44 112 44 107 45 103 Z"/>
+    <clipPath id="wukong-c-fistF"><use href="#wukong-p-fistF"/></clipPath>
+    <clipPath id="wukong-k-fistF"><use href="#wukong-p-fistF" transform="translate(-1.2 0)"/></clipPath>
+    <path id="wukong-p-pauF" d="M100 101 C92 96 80 99 76 110 C75 116 76 121 78 124 C82 116 90 111 100 110 Z"/>
+    <clipPath id="wukong-c-pauF"><use href="#wukong-p-pauF"/></clipPath>
+    <path id="wukong-p-uarmN" d="M146 96 C158 89 172 84 186 80 C194 78 200 84 198 91 C188 96 172 103 160 110 C152 112 146 106 146 96 Z"/>
+    <clipPath id="wukong-c-uarmN"><use href="#wukong-p-uarmN"/></clipPath>
+    <clipPath id="wukong-k-uarmN"><use href="#wukong-p-uarmN" transform="translate(-1.2 0)"/></clipPath>
+    <path id="wukong-p-farmN" d="M187 88 C190 99 191 110 191 121 L203 121 C204 109 203 97 199 86 Z"/>
+    <clipPath id="wukong-c-farmN"><use href="#wukong-p-farmN"/></clipPath>
+    <clipPath id="wukong-k-farmN"><use href="#wukong-p-farmN" transform="translate(-1.2 0)"/></clipPath>
+    <path id="wukong-p-handN" d="M190 119 C188 125 188 132 190 137 C192 142 196 145 200 144 C204 143 206 139 205 134 C205 129 205 124 203 119 Z"/>
+    <clipPath id="wukong-c-handN"><use href="#wukong-p-handN"/></clipPath>
+    <clipPath id="wukong-k-handN"><use href="#wukong-p-handN" transform="translate(-1.2 0)"/></clipPath>
+    <path id="wukong-p-pauN" d="M144 99 C150 90 164 87 172 93 C170 101 163 108 154 112 C150 110 146 105 144 99 Z"/>
+    <clipPath id="wukong-c-pauN"><use href="#wukong-p-pauN"/></clipPath>
+    <clipPath id="wukong-k-pauN"><use href="#wukong-p-pauN" transform="translate(-1.2 0)"/></clipPath>
+  </defs>
+  <!-- ===== backlight halo (behind everything) ===== -->
+  <ellipse class="wukong-fx wukong-aura" cx="124" cy="136" rx="106" ry="122" fill="url(#wukong-g-aura)"/>
+  <circle class="wukong-fx wukong-aura" cx="126" cy="80" r="50" fill="url(#wukong-g-hot)"/>
+  <!-- faint light rays fanning out from behind the head -->
+  <g class="wukong-fx wukong-rays" fill="url(#wukong-g-ray)">
+    <path d="M126 80 L40 22 L34 34 Z"/>
+    <path d="M126 80 L96 10 L84 14 Z"/>
+    <path d="M126 80 L176 12 L188 18 Z"/>
+    <path d="M126 80 L222 40 L226 52 Z"/>
+    <path d="M126 80 L22 128 L24 140 Z"/>
+  </g>
+
+  <!-- ===== ground: glowing base + low cloud mist ===== -->
+  <ellipse cx="120" cy="385" rx="90" ry="9" fill="url(#wukong-g-ground)"/>
+  <ellipse cx="118" cy="385.5" rx="52" ry="4.2" fill="url(#wukong-g-core)"/>
+  <!-- 筋斗云 cloud bank under the feet: lit puffy tops, dark underside, swirl curls, wind-blown tail -->
+  <g class="wukong-fx wukong-cloud">
+    <path d="M36 388 C26 390 16 387 12 379 C19 384 27 384 35 381 Z" fill="url(#wukong-g-mist)"/>
+    <path d="M34 392 C28 390 28 382 35 380 C35 372 46 368 53 374 C56 366 68 364 74 371 C80 366 90 368 92 375 C98 372 106 374 108 379 C112 373 122 372 126 376 C129 373 134 375 135 379 C138 374 146 372 150 377 C154 368 168 367 172 374 C178 368 190 369 192 376 C198 372 208 374 208 381 C214 382 214 391 207 392 Z" fill="url(#wukong-g-mist)"/>
+    <path d="M35 380 C35 372 46 368 53 374 C56 366 68 364 74 371 C80 366 90 368 92 375 M108 379 C112 373 122 372 126 376 C129 373 134 375 135 379 M150 377 C154 368 168 367 172 374 C178 368 190 369 192 376 C198 372 208 374 208 381 M12 379 C19 384 27 384 35 381" fill="none" stroke="#ffc93c" stroke-width="1.1" stroke-linecap="round" opacity=".8" filter="url(#wukong-f-glow)"/>
+    <path d="M44 386 C42 381 48 377 52 380 C54 382 53 385 50 384 M63 383 C62 377 70 374 73 379 C75 382 72 384 70 382 M156 382 C155 376 163 373 166 378 C168 381 165 383 163 381 M190 385 C189 380 196 377 199 381 C201 384 198 386 196 384" fill="none" stroke="#ffd56a" stroke-width="1" stroke-linecap="round" opacity=".7"/>
+  </g>
+  <!-- power shockwave ring rippling out from the feet -->
+  <ellipse class="wukong-fx wukong-shock" cx="119" cy="385" rx="66" ry="5.4" fill="none" stroke="#ffd56a" stroke-width="1.1" opacity=".3" filter="url(#wukong-f-glow)"/>
+
+  <!-- ===== red cape, billowing to the right (wind from the left) ===== -->
+  <!-- far-side sliver hanging behind the left of the body -->
+  <path d="M92 104 C82 118 75 142 75 168 C75 194 80 216 88 236 L104 228 L104 108 Z" fill="url(#wukong-g-cloth)"/>
+  <path d="M92 104 C82 118 75 142 75 168 C75 186 77 200 80 212" fill="none" stroke="#ff5a36" stroke-width="1.5" opacity=".8" stroke-linecap="round"/>
+  <g class="wukong-fx wukong-cape">
+    <!-- main billow -->
+    <path d="M150 98 C172 94 198 102 214 120 C226 134 230 156 226 180 C222 204 227 228 228 252 C229 268 227 282 223 296 L214 288 L211 312 C203 304 195 300 187 302 L184 322 C176 314 167 310 159 312 L152 230 L142 110 Z" fill="url(#wukong-g-cape)"/>
+    <!-- light shining through the thin cloth near its edge -->
+    <path d="M150 98 C172 94 198 102 214 120 C226 134 230 156 226 180 C222 204 227 228 228 252 C229 268 227 282 223 296 L214 288 L211 312 C203 304 195 300 187 302 L184 322 C176 314 167 310 159 312 L152 230 L142 110 Z" fill="url(#wukong-g-capeGlow)"/>
+    <!-- turned-over dark lining near the shoulder -->
+    <path d="M152 100 C174 98 198 106 212 122 C204 126 194 136 188 150 C180 136 166 122 152 114 Z" fill="#140205"/>
+    <!-- broad fold shadows + one lit ridge -->
+    <path d="M158 118 C178 152 192 204 198 300 L188 302 C184 240 174 184 154 140 Z" fill="#1c0205" opacity=".55"/>
+    <path d="M180 138 C200 172 212 216 216 290" fill="none" stroke="#ff6a3a" stroke-width="1.6" opacity=".3"/>
+    <!-- lit outer edge -->
+    <path d="M152 100 C174 98 198 106 212 122 C226 134 230 156 226 180 C222 204 227 228 228 252 C229 268 227 282 223 296 L214 288 L211 312 C203 304 195 300 187 302 L184 322 C176 314 167 310 159 312" fill="none" stroke="#ff7a48" stroke-width="1.6" stroke-linejoin="round" filter="url(#wukong-f-glow)"/>
+  </g>
+
+  <!-- ===== mane: long locks streaming back in the wind ===== -->
+  <g class="wukong-fx wukong-mane">
+  <g clip-path="url(#wukong-c-mane)">
+    <use href="#wukong-p-mane" fill="url(#wukong-g-rimG)"/>
+    <use href="#wukong-p-mane" fill="url(#wukong-g-rimW)" transform="translate(1.8 1.3)"/>
+    <use href="#wukong-p-mane" fill="url(#wukong-g-rimR)" transform="translate(4.14 2.99)"/>
+    <g clip-path="url(#wukong-k-mane)"><use href="#wukong-p-mane" fill="url(#wukong-g-fur)" transform="translate(4.14 2.99)"/></g>
+  </g>
+    <path d="M128 35 C144 36 160 37 178 36 M136 46 C150 49 166 51 182 52 M140 58 C152 62 164 66 176 70 M140 70 C148 76 156 82 163 88" fill="none" stroke="#ffc93c" stroke-width=".7" opacity=".3" stroke-linecap="round"/>
+  </g>
+
+  <!-- ===== 金箍棒: resting across the shoulders (behind the neck) ===== -->
+  <g transform="translate(14 112) rotate(-7.524)">
+    <!-- energy bloom -->
+    <rect class="wukong-fx wukong-sglow" x="-2" y="-5.5" width="217.8" height="11" rx="5.5" fill="#ffc93c" opacity=".55" filter="url(#wukong-f-bloom)"/>
+    <!-- dark iron shaft -->
+    <rect x="16" y="-3.3" width="181.8" height="6.6" fill="url(#wukong-g-iron)"/>
+    <!-- energy coil wrapping the shaft -->
+    <path class="wukong-fx wukong-sglow" d="M30 0 q3.5 -4.4 7 0 q3.5 4.4 7 0 q3.5 -4.4 7 0 q3.5 4.4 7 0 q3.5 -4.4 7 0 q3.5 4.4 7 0 q3.5 -4.4 7 0 q3.5 4.4 7 0 q3.5 -4.4 7 0 q3.5 4.4 7 0 q3.5 -4.4 7 0 q3.5 4.4 7 0 q3.5 -4.4 7 0 q3.5 4.4 7 0 q3.5 -4.4 7 0 q3.5 4.4 7 0 q3.5 -4.4 7 0 q3.5 4.4 7 0 q3.5 -4.4 7 0 q3.5 4.4 7 0 q3.5 -4.4 7 0 q3.5 4.4 7 0 q3.5 -4.4 7 0" fill="none" stroke="#ffd86a" stroke-width=".8" opacity=".6" filter="url(#wukong-f-glow)"/>
+    <!-- golden end caps + rings -->
+    <rect x="0" y="-3.9" width="19" height="7.8" rx="1.6" fill="url(#wukong-g-gold)" filter="url(#wukong-f-glow)"/>
+    <rect x="194.8" y="-3.9" width="19" height="7.8" rx="1.6" fill="url(#wukong-g-gold)" filter="url(#wukong-f-glow)"/>
+    <rect x="17" y="-4.7" width="3.6" height="9.4" rx="1" fill="url(#wukong-g-gold)"/>
+    <rect x="193.2" y="-4.7" width="3.6" height="9.4" rx="1" fill="url(#wukong-g-gold)"/>
+    <!-- rim light along the top edge -->
+    <rect x="1" y="-3.6" width="211.8" height=".8" fill="#fff1b0" opacity=".6"/>
+    <!-- energy streaks running along the staff -->
+    <rect class="wukong-fx wukong-streak" x="26" y="-.7" width="18" height="1.4" rx=".7" fill="#fff4c0" filter="url(#wukong-f-glow)"/>
+    <rect class="wukong-fx wukong-streak" style="animation-delay:-1.2s" x="56" y="-.6" width="12" height="1.2" rx=".6" fill="#fff4c0" filter="url(#wukong-f-glow)"/>
+    <rect class="wukong-fx wukong-streak" style="animation-delay:-.6s" x="168" y="-.7" width="16" height="1.4" rx=".7" fill="#fff4c0" filter="url(#wukong-f-glow)"/>
+    <rect class="wukong-fx wukong-streak" style="animation-delay:-1.8s" x="146" y="-.6" width="10" height="1.2" rx=".6" fill="#fff4c0" filter="url(#wukong-f-glow)"/>
+    <!-- energy rings pulsing off both ends -->
+    <ellipse class="wukong-fx wukong-ring" cx="4" cy="0" rx="2.6" ry="8" fill="none" stroke="#ffe08a" stroke-width=".9" opacity=".7" filter="url(#wukong-f-glow)"/>
+    <ellipse class="wukong-fx wukong-ring" style="animation-delay:-1.1s" cx="209.8" cy="0" rx="2.6" ry="8" fill="none" stroke="#ffe08a" stroke-width=".9" opacity=".7" filter="url(#wukong-f-glow)"/>
+    <!-- crackling energy arcs at both gold ends -->
+    <g fill="none" stroke="#fff3c0" stroke-width=".9" stroke-linejoin="round" stroke-linecap="round" filter="url(#wukong-f-glow)">
+      <path class="wukong-fx wukong-zap" d="M4 -4 L1 -8.5 L4.5 -10 L2 -15"/>
+      <path class="wukong-fx wukong-zap" style="animation-delay:-1.3s" d="M6 4 L3 8.5 L6.5 9.5 L4 14"/>
+      <path class="wukong-fx wukong-zap" style="animation-delay:-.7s" d="M210 -4 L213 -8.5 L209.5 -10.5 L212 -15.5"/>
+      <path class="wukong-fx wukong-zap" style="animation-delay:-1.8s" d="M208 4 L211 8.5 L207.5 10 L210 14.5"/>
+    </g>
+  </g>
+
+  <!-- ===== tail curling out behind the far leg ===== -->
+  <path d="M104 214 C88 228 68 240 55 234 C43 228 41 211 50 203 C57 197 66 201 63 209" fill="none" stroke="url(#wukong-g-rimG)" stroke-width="5.4" stroke-linecap="round"/>
+  <path d="M104 214 C88 228 68 240 55 234 C43 228 41 211 50 203 C57 197 66 201 63 209" fill="none" stroke="#1a0f0a" stroke-width="5.2" stroke-linecap="round" transform="translate(.9 .9)"/>
+
+  <!-- ===== legs: baggy trousers, wrapped greaves, cloud boots ===== -->
+  <g clip-path="url(#wukong-c-legF)">
+    <use href="#wukong-p-legF" fill="url(#wukong-g-rimG)"/>
+    <use href="#wukong-p-legF" fill="url(#wukong-g-rimW)" transform="translate(1.5 0.6)"/>
+    <use href="#wukong-p-legF" fill="url(#wukong-g-rimR)" transform="translate(3.45 1.38)"/>
+    <g clip-path="url(#wukong-k-legF)"><use href="#wukong-p-legF" fill="url(#wukong-g-pants)" transform="translate(3.45 1.38)"/></g>
+  </g>
+  <g clip-path="url(#wukong-c-grvF)">
+    <use href="#wukong-p-grvF" fill="url(#wukong-g-rimG)"/>
+    <use href="#wukong-p-grvF" fill="url(#wukong-g-rimW)" transform="translate(1.3 0.1)"/>
+    <use href="#wukong-p-grvF" fill="url(#wukong-g-rimR)" transform="translate(2.99 0.23)"/>
+    <g clip-path="url(#wukong-k-grvF)"><use href="#wukong-p-grvF" fill="url(#wukong-g-armor)" transform="translate(2.99 0.23)"/></g>
+  </g>
+  <path d="M84 323 L105.5 323 M83.5 345 L104.5 345 M84 363 L103 363" stroke="#c9952e" stroke-width="1.3" opacity=".6"/>
+  <g clip-path="url(#wukong-c-bootF)">
+    <use href="#wukong-p-bootF" fill="url(#wukong-g-rimG)"/>
+    <use href="#wukong-p-bootF" fill="url(#wukong-g-rimW)" transform="translate(1.3 0.2)"/>
+    <use href="#wukong-p-bootF" fill="url(#wukong-g-rimR)" transform="translate(2.99 0.46)"/>
+    <g clip-path="url(#wukong-k-bootF)"><use href="#wukong-p-bootF" fill="url(#wukong-g-fur)" transform="translate(2.99 0.46)"/></g>
+  </g>
+  <g clip-path="url(#wukong-c-legN)">
+    <use href="#wukong-p-legN" fill="url(#wukong-g-rimG)"/>
+    <use href="#wukong-p-legN" fill="url(#wukong-g-rimW)" transform="translate(1.5 0.6)"/>
+    <use href="#wukong-p-legN" fill="url(#wukong-g-rimR)" transform="translate(3.45 1.38)"/>
+    <g clip-path="url(#wukong-k-legN)"><use href="#wukong-p-legN" fill="url(#wukong-g-pants)" transform="translate(3.45 1.38)"/></g>
+  </g>
+  <g clip-path="url(#wukong-c-grvN)">
+    <use href="#wukong-p-grvN" fill="url(#wukong-g-rimG)"/>
+    <use href="#wukong-p-grvN" fill="url(#wukong-g-rimW)" transform="translate(1.3 0.1)"/>
+    <use href="#wukong-p-grvN" fill="url(#wukong-g-rimR)" transform="translate(2.99 0.23)"/>
+    <g clip-path="url(#wukong-k-grvN)"><use href="#wukong-p-grvN" fill="url(#wukong-g-armor)" transform="translate(2.99 0.23)"/></g>
+  </g>
+  <path d="M144.5 323 L167.5 323 M146 345 L167.5 345 M148 363 L166 363" stroke="#c9952e" stroke-width="1.3" opacity=".55"/>
+  <g clip-path="url(#wukong-c-bootN)">
+    <use href="#wukong-p-bootN" fill="url(#wukong-g-rimG)"/>
+    <use href="#wukong-p-bootN" fill="url(#wukong-g-rimW)" transform="translate(1.3 0.2)"/>
+    <use href="#wukong-p-bootN" fill="url(#wukong-g-rimR)" transform="translate(2.99 0.46)"/>
+    <g clip-path="url(#wukong-k-bootN)"><use href="#wukong-p-bootN" fill="url(#wukong-g-fur)" transform="translate(2.99 0.46)"/></g>
+  </g>
+  <!-- trouser folds + knee highlights -->
+  <path d="M95 236 C98 252 98 268 96 282 M149 236 C154 252 156 268 156 284" fill="none" stroke="#050203" stroke-width="1.4" opacity=".6"/>
+  <path d="M92 228 C90 244 89 258 89 270 M134 248 C136 262 138 272 140 284" fill="none" stroke="#ffb04a" stroke-width=".8" opacity=".28"/>
+  <!-- knee planes: short diagonal glints instead of arcs -->
+  <path d="M90 284 L97 280 M137 289 L144 285" fill="none" stroke="#ffb04a" stroke-width="1.1" stroke-linecap="round" opacity=".45"/>
+
+  <!-- ===== neck + armoured torso ===== -->
+  <g clip-path="url(#wukong-c-neck)">
+    <use href="#wukong-p-neck" fill="url(#wukong-g-rimG)"/>
+    <use href="#wukong-p-neck" fill="url(#wukong-g-rimW)" transform="translate(1.3 0.8)"/>
+    <use href="#wukong-p-neck" fill="url(#wukong-g-fur)" transform="translate(2.99 1.84)"/>
+  </g>
+  <g clip-path="url(#wukong-c-torso)">
+    <use href="#wukong-p-torso" fill="url(#wukong-g-rimG)"/>
+    <use href="#wukong-p-torso" fill="url(#wukong-g-rimW)" transform="translate(1.8 1.1)"/>
+    <use href="#wukong-p-torso" fill="url(#wukong-g-armor)" transform="translate(4.14 2.53)"/>
+  </g>
+  <!-- chest volume + armour trims -->
+  <g clip-path="url(#wukong-c-torso)">
+    <ellipse cx="121" cy="100" rx="40" ry="22" fill="url(#wukong-g-spill)"/>
+    <ellipse cx="106" cy="122" rx="16" ry="12" fill="url(#wukong-g-spill)" opacity=".7"/>
+  </g>
+  <!-- lamellar scale rows over the belly (clipped to the torso) -->
+  <g clip-path="url(#wukong-c-torso)" fill="none" stroke-width=".8">
+    <defs><path id="wukong-p-scales" d="M88 140 q4.5 5 9 0 q4.5 5 9 0 q4.5 5 9 0 q4.5 5 9 0 q4.5 5 9 0 q4.5 5 9 0 q4.5 5 9 0 M92.5 149 q4.5 5 9 0 q4.5 5 9 0 q4.5 5 9 0 q4.5 5 9 0 q4.5 5 9 0 q4.5 5 9 0 q4.5 5 9 0 M88 158 q4.5 5 9 0 q4.5 5 9 0 q4.5 5 9 0 q4.5 5 9 0 q4.5 5 9 0 q4.5 5 9 0 q4.5 5 9 0 M92.5 167 q4.5 5 9 0 q4.5 5 9 0 q4.5 5 9 0 q4.5 5 9 0 q4.5 5 9 0 q4.5 5 9 0"/>
+    </defs>
+    <use href="#wukong-p-scales" stroke="#050302" opacity=".75" transform="translate(0 .9)"/>
+    <use href="#wukong-p-scales" stroke="#c9952e" opacity=".42" transform="translate(0 -.9)"/>
+  </g>
+  <!-- pectoral plates: lit from the upper left, gold-trimmed top edges, red bounce on the right -->
+  <path d="M92 117 C100 113 112 113 120 119 L120 128 C112 136 100 136 91 129 Z" fill="url(#wukong-g-armor)"/>
+  <path d="M122 119 C130 113 144 112 154 115 C154 121 152 126 151 128 C142 134 130 135 122 128 Z" fill="url(#wukong-g-armor)"/>
+  <path d="M92 117 C100 113 112 113 120 119 M122 119 C130 113 144 112 154 115" fill="none" stroke="#ffc93c" stroke-width="1.1" opacity=".8"/>
+  <path d="M91 129 C100 136 112 136 120 128 M122 128 C130 135 142 134 151 128" fill="none" stroke="#050302" stroke-width="1.2" opacity=".7"/>
+  <path d="M154 115 C154 121 152 126 151 128" fill="none" stroke="#e0402a" stroke-width="1" opacity=".7"/>
+  <path d="M110 99 L121 121 L136 98" fill="none" stroke="#d9a33a" stroke-width="1.5" stroke-linejoin="round"/>
+  <path d="M95 111 C100 106 108 104 114 106" fill="none" stroke="#ffe08a" stroke-width="1.2" opacity=".6"/>
+
+  <!-- ===== belt, hip guards, front cloth, wind-blown sash ===== -->
+  <g class="wukong-fx wukong-apron">
+    <path d="M111 189 L129 189 C130 210 133 232 138 257 L126 250 L115 259 C111 250 108.5 242 108.5 234 C109 218 110 204 111 189 Z" fill="url(#wukong-g-cloth)"/>
+    <path d="M138 257 L126 250 L115 259" fill="none" stroke="#e0a440" stroke-width="1" stroke-linejoin="round" opacity=".85"/>
+    <path d="M111.5 192 C110.5 210 110 226 110.5 240" fill="none" stroke="#ff5a36" stroke-width=".9" opacity=".55"/>
+  </g>
+  <path d="M98 187 L112 190 L110 222 L90 215 Z" fill="url(#wukong-g-armor)"/>
+  <path d="M90 215 L98 187 L112 190" fill="none" stroke="#e0a440" stroke-width="1.1" stroke-linejoin="round"/>
+  <path d="M128 190 L143 187 L152 213 L132 221 Z" fill="url(#wukong-g-armor)"/>
+  <path d="M128 190 L143 187 M132 221 L152 213" fill="none" stroke="#a8762a" stroke-width=".9" opacity=".7"/>
+  <path d="M99 177 C112 180 128 180 142 176 L143 188 C128 191 112 191 98 189 Z" fill="#120905"/>
+  <path d="M99 177 C112 180 128 180 142 176" fill="none" stroke="#d9a33a" stroke-width="1"/>
+  <path d="M113 177.5 L127 177.5 L128 190 L112 190 Z" fill="url(#wukong-g-gold)" filter="url(#wukong-f-glow)"/>
+  <path d="M116.5 184 C116.5 181 122 181 122 184 C122 186.5 119 186.5 119 184" fill="none" stroke="#5a3408" stroke-width="1"/>
+  <g class="wukong-fx wukong-sash">
+    <path d="M142 181 C158 185 172 195 188 195 C200 195 208 189 216 191 C208 195 200 201 188 202 C172 203 156 195 142 189 Z" fill="url(#wukong-g-sash)"/>
+    <path d="M142 185 C154 195 166 209 180 215 C190 219 198 217 204 221 C194 223 186 225 178 222 C164 217 152 205 142 193 Z" fill="url(#wukong-g-sash)" opacity=".85"/>
+    <path d="M142 181 C158 185 172 195 188 195 C200 195 208 189 216 191" fill="none" stroke="#ffb04a" stroke-width=".9" opacity=".85"/>
+  </g>
+
+  <!-- ===== head: monkey face in shadow, mane-framed ===== -->
+  <g clip-path="url(#wukong-c-ear)">
+    <use href="#wukong-p-ear" fill="url(#wukong-g-rimG)"/>
+    <use href="#wukong-p-ear" fill="url(#wukong-g-rimW)" transform="translate(1.1 0.8)"/>
+    <use href="#wukong-p-ear" fill="url(#wukong-g-rimR)" transform="translate(2.53 1.84)"/>
+    <g clip-path="url(#wukong-k-ear)"><use href="#wukong-p-ear" fill="url(#wukong-g-fur)" transform="translate(2.53 1.84)"/></g>
+  </g>
+  <g clip-path="url(#wukong-c-head)">
+    <use href="#wukong-p-head" fill="url(#wukong-g-rimG)"/>
+    <use href="#wukong-p-head" fill="url(#wukong-g-rimW)" transform="translate(1.8 1)"/>
+    <use href="#wukong-p-head" fill="url(#wukong-g-head)" transform="translate(4.14 2.3)"/>
+  </g>
+  <!-- bare face mask (heart shape around eyes and muzzle) -->
+  <path d="M104 56 C110 53 120 53 128 56 C131 60 131 66 128 70 C132 75 128 84 120 87 C114 89 108 88 104.5 84.5 C101 81 99.5 77 99.5 74 C99 71 99.5 68 101 66 C102.5 64 104.5 62.5 105.5 61.5 C104.5 59.5 104 58 104 56 Z" fill="url(#wukong-g-face)"/>
+  <g clip-path="url(#wukong-c-whisk)">
+    <use href="#wukong-p-whisk" fill="url(#wukong-g-rimG)"/>
+    <use href="#wukong-p-whisk" fill="url(#wukong-g-rimW)" transform="translate(1.1 0.9)"/>
+    <use href="#wukong-p-whisk" fill="url(#wukong-g-rimR)" transform="translate(2.53 2.07)"/>
+    <g clip-path="url(#wukong-k-whisk)"><use href="#wukong-p-whisk" fill="url(#wukong-g-fur)" transform="translate(2.53 2.07)"/></g>
+  </g>
+  <!-- deep eye sockets + fierce V brow -->
+  <ellipse cx="118.5" cy="62" rx="9" ry="3.4" fill="#070303" opacity=".7"/>
+  <path d="M101.8 55.6 L108.5 58.4 L111 59.6 C117 57.6 123 55.8 131 54.6 L131 57.4 C124 58.4 118 60 112.6 62 L108 61.4 L102.4 58.6 Z" fill="#070303"/>
+  <path d="M112 59.2 C118 57.2 124 55.6 130.6 54.6" fill="none" stroke="#ffb04a" stroke-width=".6" opacity=".55"/>
+  <!-- muzzle volume -->
+  <path d="M98 67 C102 65 108 66 112 69 C114 73 113 78 110 81 C106 83 101 82 99 80 Z" fill="#9a5c36" opacity=".28"/>
+  <!-- lit planes: cheekbone, muzzle bridge, jaw edge -->
+  <path d="M108 67.8 L121.5 65.2 L118.4 67.6 L110 69.8 Z" fill="#ffc93c" opacity=".38"/>
+  <path d="M98.6 66.5 C99.5 65 101 64 102.5 63.6" fill="none" stroke="#ffe08a" stroke-width=".9" opacity=".8"/>
+  <path d="M102 84.5 C105 87.5 109 89 114 89.3" fill="none" stroke="#ffd56a" stroke-width="1" opacity=".75"/>
+  <!-- nostril, upper lip, stern mouth with down-turned corner -->
+  <path d="M99 67.8 C99.8 67.2 100.8 67.4 101.2 68.2" fill="none" stroke="#070303" stroke-width="1" stroke-linecap="round"/>
+  <path d="M97.4 72.4 C100.5 72.2 103.5 72.6 106 73.6" fill="none" stroke="#070303" stroke-width=".6" opacity=".6"/>
+  <path d="M97.4 75.4 C101 76 105 76.1 108.4 75.6 L110.6 77" fill="none" stroke="#070303" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- 紧箍 golden headband -->
+  <path d="M102.6 52.6 C111 49.4 128 47.6 140.2 50.4" fill="none" stroke="url(#wukong-g-gold)" stroke-width="4.4" filter="url(#wukong-f-glow)"/>
+  <path d="M103 50.8 C111 47.8 128 46 140 48.8" fill="none" stroke="#fff6cf" stroke-width=".8"/>
+  <!-- 火眼金睛: narrow glowing eyes + anamorphic flare -->
+  <g class="wukong-fx wukong-eyes">
+    <ellipse cx="116" cy="61.5" rx="11" ry="4" fill="#ffc93c" opacity=".55" filter="url(#wukong-f-bloom)"/>
+    <path d="M104.6 62.2 L109 61.1 L108.3 62.8 Z" fill="#fff4c4" filter="url(#wukong-f-glow)"/>
+    <path d="M113.6 63.3 C117 61.7 121 60.5 126 59.7 L124.4 62.5 C120.8 63.5 117 63.9 113.6 63.3 Z" fill="#fff4c4" filter="url(#wukong-f-glow)"/>
+    <rect x="90" y="60.7" width="56" height="1" fill="url(#wukong-g-flare)"/>
+  </g>
+
+  <!-- ===== far arm: fist gripping the staff ===== -->
+  <g clip-path="url(#wukong-c-uarmF)">
+    <use href="#wukong-p-uarmF" fill="url(#wukong-g-rimG)"/>
+    <use href="#wukong-p-uarmF" fill="url(#wukong-g-rimW)" transform="translate(1.6 1)"/>
+    <use href="#wukong-p-uarmF" fill="url(#wukong-g-fur)" transform="translate(3.68 2.3)"/>
+  </g>
+  <g clip-path="url(#wukong-c-farmF)">
+    <use href="#wukong-p-farmF" fill="url(#wukong-g-rimG)"/>
+    <use href="#wukong-p-farmF" fill="url(#wukong-g-rimW)" transform="translate(1.4 0.8)"/>
+    <use href="#wukong-p-farmF" fill="url(#wukong-g-rimR)" transform="translate(3.22 1.84)"/>
+    <g clip-path="url(#wukong-k-farmF)"><use href="#wukong-p-farmF" fill="url(#wukong-g-fur)" transform="translate(3.22 1.84)"/></g>
+  </g>
+  <path d="M52 124 L64 120 L68 134 L56 138 Z" fill="url(#wukong-g-armor)" stroke="#d9a33a" stroke-width="1"/>
+  <g clip-path="url(#wukong-c-fistF)">
+    <use href="#wukong-p-fistF" fill="url(#wukong-g-rimG)"/>
+    <use href="#wukong-p-fistF" fill="url(#wukong-g-rimW)" transform="translate(1.4 1)"/>
+    <use href="#wukong-p-fistF" fill="url(#wukong-g-rimR)" transform="translate(3.22 2.3)"/>
+    <g clip-path="url(#wukong-k-fistF)"><use href="#wukong-p-fistF" fill="url(#wukong-g-fur)" transform="translate(3.22 2.3)"/></g>
+  </g>
+  <path d="M48 106 L60 105 M48 110 L60 109.5 M48 114 L59 113.5" stroke="#050302" stroke-width=".8" opacity=".8"/>
+  <g clip-path="url(#wukong-c-pauF)">
+    <use href="#wukong-p-pauF" fill="url(#wukong-g-rimG)"/>
+    <use href="#wukong-p-pauF" fill="url(#wukong-g-rimW)" transform="translate(1.5 1.1)"/>
+    <use href="#wukong-p-pauF" fill="url(#wukong-g-armor)" transform="translate(3.45 2.53)"/>
+  </g>
+  <path d="M78 122 C82 115 90 110.5 100 109.5" fill="none" stroke="#c9952e" stroke-width="1"/>
+  <ellipse cx="88" cy="104" rx="8" ry="3.2" fill="#ffc93c" opacity=".3" filter="url(#wukong-f-glow)"/>
+
+  <!-- ===== near arm: draped over the staff ===== -->
+  <g clip-path="url(#wukong-c-uarmN)">
+    <use href="#wukong-p-uarmN" fill="url(#wukong-g-rimG)"/>
+    <use href="#wukong-p-uarmN" fill="url(#wukong-g-rimW)" transform="translate(1.5 1.2)"/>
+    <use href="#wukong-p-uarmN" fill="url(#wukong-g-rimR)" transform="translate(3.45 2.76)"/>
+    <g clip-path="url(#wukong-k-uarmN)"><use href="#wukong-p-uarmN" fill="url(#wukong-g-fur)" transform="translate(3.45 2.76)"/></g>
+  </g>
+  <g clip-path="url(#wukong-c-farmN)">
+    <use href="#wukong-p-farmN" fill="url(#wukong-g-rimG)"/>
+    <use href="#wukong-p-farmN" fill="url(#wukong-g-rimW)" transform="translate(1.3 0.8)"/>
+    <use href="#wukong-p-farmN" fill="url(#wukong-g-rimR)" transform="translate(2.99 1.84)"/>
+    <g clip-path="url(#wukong-k-farmN)"><use href="#wukong-p-farmN" fill="url(#wukong-g-fur)" transform="translate(2.99 1.84)"/></g>
+  </g>
+  <path d="M188 98 L201 96 L202.5 114 L190.5 116 Z" fill="url(#wukong-g-armor)" stroke="#d9a33a" stroke-width="1"/>
+  <g clip-path="url(#wukong-c-handN)">
+    <use href="#wukong-p-handN" fill="url(#wukong-g-rimG)"/>
+    <use href="#wukong-p-handN" fill="url(#wukong-g-rimW)" transform="translate(1.1 0.6)"/>
+    <use href="#wukong-p-handN" fill="url(#wukong-g-rimR)" transform="translate(2.53 1.38)"/>
+    <g clip-path="url(#wukong-k-handN)"><use href="#wukong-p-handN" fill="url(#wukong-g-fur)" transform="translate(2.53 1.38)"/></g>
+  </g>
+  <path d="M190.5 125 C187.5 128 187 132 188.5 134.5" fill="none" stroke="#ffc93c" stroke-width=".9" opacity=".6"/>
+  <path d="M195 133 L195.6 142 M199 133 L199.6 143 M202.6 132 L203 139" stroke="#050302" stroke-width=".8" opacity=".85"/>
+  <g clip-path="url(#wukong-c-pauN)">
+    <use href="#wukong-p-pauN" fill="url(#wukong-g-rimG)"/>
+    <use href="#wukong-p-pauN" fill="url(#wukong-g-rimW)" transform="translate(1.5 1.1)"/>
+    <use href="#wukong-p-pauN" fill="url(#wukong-g-rimR)" transform="translate(3.45 2.53)"/>
+    <g clip-path="url(#wukong-k-pauN)"><use href="#wukong-p-pauN" fill="url(#wukong-g-armor)" transform="translate(3.45 2.53)"/></g>
+  </g>
+  <path d="M146 99 C152 92 163 89.5 171 93" fill="none" stroke="#ffe08a" stroke-width="1.2" opacity=".85"/>
+
+  <!-- ===== sparkle glints (headband, staff ends) ===== -->
+  <g transform="translate(128 48.4)"><path class="wukong-fx wukong-glint" d="M0 -6 L1 -1 L6 0 L1 1 L0 6 L-1 1 L-6 0 L-1 -1 Z" fill="#fffbe6" filter="url(#wukong-f-glow)"/></g>
+  <g transform="translate(18 111.5)"><path class="wukong-fx wukong-glint" style="animation-delay:-1.2s" d="M0 -7 L1.1 -1.1 L7 0 L1.1 1.1 L0 7 L-1.1 1.1 L-7 0 L-1.1 -1.1 Z" fill="#fffbe6" filter="url(#wukong-f-glow)"/></g>
+  <g transform="translate(222 84.5)"><path class="wukong-fx wukong-glint" style="animation-delay:-2.4s" d="M0 -7 L1.1 -1.1 L7 0 L1.1 1.1 L0 7 L-1.1 1.1 L-7 0 L-1.1 -1.1 Z" fill="#fffbe6" filter="url(#wukong-f-glow)"/></g>
+  <!-- ===== drifting embers ===== -->
+  <g filter="url(#wukong-f-glow)">
+    <circle class="wukong-fx wukong-ember" style="animation-delay:0s" cx="30" cy="92" r="1.4" fill="#ffd56a" opacity=".85"/>
+    <circle class="wukong-fx wukong-ember" style="animation-delay:-1.4s" cx="40" cy="156" r="1.1" fill="#ff8a3a" opacity=".85"/>
+    <circle class="wukong-fx wukong-ember" style="animation-delay:-2.6s" cx="204" cy="60" r="1.3" fill="#ffd56a" opacity=".85"/>
+    <circle class="wukong-fx wukong-ember" style="animation-delay:-0.8s" cx="218" cy="214" r="1.2" fill="#ff7a3a" opacity=".85"/>
+    <circle class="wukong-fx wukong-ember" style="animation-delay:-3.4s" cx="196" cy="258" r="1.5" fill="#ffb04a" opacity=".85"/>
+    <circle class="wukong-fx wukong-ember" style="animation-delay:-2s" cx="70" cy="266" r="1" fill="#ffd56a" opacity=".85"/>
+    <circle class="wukong-fx wukong-ember" style="animation-delay:-4.1s" cx="30" cy="286" r="1.3" fill="#ff8a3a" opacity=".85"/>
+    <circle class="wukong-fx wukong-ember" style="animation-delay:-1.7s" cx="210" cy="336" r="1.1" fill="#ffd56a" opacity=".85"/>
+    <circle class="wukong-fx wukong-ember" style="animation-delay:-3s" cx="190" cy="70" r="1" fill="#fff0b0" opacity=".85"/>
+    <circle class="wukong-fx wukong-ember" style="animation-delay:-0.4s" cx="80" cy="60" r="1.2" fill="#ffd56a" opacity=".85"/>
+    <circle class="wukong-fx wukong-ember" style="animation-delay:-2.8s" cx="52" cy="340" r="1" fill="#ffb04a" opacity=".85"/>
+    <circle class="wukong-fx wukong-ember" style="animation-delay:-4.4s" cx="190" cy="160" r="0.9" fill="#fff0b0" opacity=".85"/>
+  </g>
+</svg>

@@ -1,0 +1,513 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 400" width="240" height="400">
+  <!-- 敖丙 · 龙族三太子 — original cinematic backlit hero (style spec v2).
+       Key light: the conjured ice in his raised hand (upper left, cyan).
+       Back light: cold aura behind him (silver rim on right/top edges). Wind from the left. -->
+  <defs>
+    <style>
+      .aobing-fx{transform-box:fill-box;transform-origin:50% 50%}
+      .aobing-pulse{animation:aobing-pulse 4s ease-in-out infinite}
+      .aobing-bloom{animation:aobing-bloom 2.6s ease-in-out infinite}
+      .aobing-ring{animation:aobing-spin 6s linear infinite}
+      .aobing-d1{animation:aobing-drift 4.2s ease-in-out infinite}
+      .aobing-d2{animation:aobing-drift 5.4s ease-in-out -1.8s infinite}
+      .aobing-d3{animation:aobing-drift2 4.8s ease-in-out -0.9s infinite}
+      .aobing-tw{animation:aobing-tw 2.2s ease-in-out infinite}
+      .aobing-tw2{animation:aobing-tw 2.2s ease-in-out -1.1s infinite}
+      .aobing-mist{animation:aobing-mist 6s ease-in-out infinite}
+      .aobing-sway{transform-origin:50% 0%;animation:aobing-sway 3.2s ease-in-out infinite}
+      .aobing-eye{animation:aobing-eye 3.6s ease-in-out infinite}
+      .aobing-float{animation:aobing-float 3s ease-in-out infinite}
+      @keyframes aobing-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+      .aobing-ripple{animation:aobing-ripple 3.6s ease-out infinite}
+      @keyframes aobing-ripple{0%{opacity:0;transform:scale(.6)}15%{opacity:1}100%{opacity:0;transform:scale(1.18)}}
+      @keyframes aobing-pulse{0%,100%{opacity:1}50%{opacity:.62}}
+      @keyframes aobing-bloom{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.72;transform:scale(1.12)}}
+      @keyframes aobing-spin{to{transform:rotate(360deg)}}
+      @keyframes aobing-drift{0%,100%{transform:translate(0,0) rotate(0deg)}50%{transform:translate(2px,-7px) rotate(8deg)}}
+      @keyframes aobing-drift2{0%,100%{transform:translate(0,0) rotate(0deg)}50%{transform:translate(-3px,-5px) rotate(-10deg)}}
+      @keyframes aobing-tw{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.3;transform:scale(.55)}}
+      @keyframes aobing-mist{0%,100%{opacity:1;transform:translateX(0)}50%{opacity:.55;transform:translateX(6px)}}
+      @keyframes aobing-sway{0%,100%{transform:rotate(0deg)}50%{transform:rotate(-6deg)}}
+      @keyframes aobing-eye{0%,100%{opacity:1}50%{opacity:.7}}
+      /* ice-dragon frost stream: body shimmer + light pulses travelling toward the hand */
+      .aobing-shim{animation:aobing-shim 3s ease-in-out infinite}
+      @keyframes aobing-shim{0%,100%{opacity:1}50%{opacity:.72}}
+      .aobing-f1{animation:aobing-flow 2.4s linear infinite}
+      .aobing-f2{animation:aobing-flow 2.4s linear -1.6s infinite}
+      .aobing-f3{animation:aobing-flow 2.4s linear -.8s infinite}
+      @keyframes aobing-flow{0%{opacity:.15}12%{opacity:1}36%{opacity:.15}100%{opacity:.15}}
+      /* god rays + anamorphic flare from the conjured crystal */
+      .aobing-rays{animation:aobing-rays 5s ease-in-out infinite}
+      @keyframes aobing-rays{0%,100%{opacity:1;transform:rotate(0deg)}50%{opacity:.5;transform:rotate(9deg)}}
+      .aobing-flare{animation:aobing-flare 2.6s ease-in-out infinite}
+      @keyframes aobing-flare{0%,100%{opacity:1;transform:scaleX(1)}50%{opacity:.6;transform:scaleX(.82)}}
+      .aobing-bokeh{animation:aobing-bokeh 5.6s ease-in-out infinite}
+      @keyframes aobing-bokeh{0%,100%{opacity:1;transform:translateY(0)}50%{opacity:.5;transform:translateY(-6px)}}
+      @media (prefers-reduced-motion: reduce){.aobing-fx,.aobing-fx *{animation:none !important}}
+    </style>
+
+    <!-- glow + soft blur (user-space regions so thin strokes never get clipped) -->
+    <filter id="aobing-glow" filterUnits="userSpaceOnUse" x="-10" y="-10" width="260" height="420">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="1.8" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="aobing-soft" filterUnits="userSpaceOnUse" x="-10" y="-10" width="260" height="420">
+      <feGaussianBlur stdDeviation="5"/>
+    </filter>
+
+    <!-- light / aura -->
+    <radialGradient id="aobing-aura" cx=".5" cy=".45" r=".5">
+      <stop offset="0" stop-color="#7fd6ff" stop-opacity=".3"/>
+      <stop offset=".55" stop-color="#3f8fc0" stop-opacity=".1"/>
+      <stop offset="1" stop-color="#3f8fc0" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="aobing-back" cx=".5" cy=".5" r=".5">
+      <stop offset="0" stop-color="#e6f6ff" stop-opacity=".5"/>
+      <stop offset=".4" stop-color="#7fd6ff" stop-opacity=".2"/>
+      <stop offset="1" stop-color="#7fd6ff" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="aobing-orb" cx=".5" cy=".5" r=".5">
+      <stop offset="0" stop-color="#ffffff" stop-opacity=".95"/>
+      <stop offset=".3" stop-color="#bfeaff" stop-opacity=".55"/>
+      <stop offset="1" stop-color="#7fd6ff" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="aobing-ground" cx=".5" cy=".5" r=".5">
+      <stop offset="0" stop-color="#7fd6ff" stop-opacity=".55"/>
+      <stop offset=".6" stop-color="#3f8fc0" stop-opacity=".18"/>
+      <stop offset="1" stop-color="#3f8fc0" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- materials: deep shadow tones, lighter toward the ice key light (left) -->
+    <linearGradient id="aobing-skin" x1="0" y1="0" x2="1" y2=".3">
+      <stop offset="0" stop-color="#36576d"/>
+      <stop offset=".3" stop-color="#172836"/>
+      <stop offset="1" stop-color="#080f16"/>
+    </linearGradient>
+    <linearGradient id="aobing-hair" x1="1" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#a9cfe4"/>
+      <stop offset=".3" stop-color="#4b7896"/>
+      <stop offset=".7" stop-color="#1b3449"/>
+      <stop offset="1" stop-color="#0b1621"/>
+    </linearGradient>
+    <linearGradient id="aobing-haircap" x1="0" y1="1" x2=".9" y2="0">
+      <stop offset="0" stop-color="#1a3044"/>
+      <stop offset=".5" stop-color="#46738f"/>
+      <stop offset="1" stop-color="#a9cfe4"/>
+    </linearGradient>
+    <linearGradient id="aobing-hairtop" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#9cc6de"/>
+      <stop offset=".45" stop-color="#43708e"/>
+      <stop offset="1" stop-color="#15283a"/>
+    </linearGradient>
+    <linearGradient id="aobing-robe" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#173a54"/>
+      <stop offset=".45" stop-color="#0b1c2b"/>
+      <stop offset="1" stop-color="#050a10"/>
+    </linearGradient>
+    <linearGradient id="aobing-tail" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#070f18"/>
+      <stop offset=".65" stop-color="#10283c"/>
+      <stop offset="1" stop-color="#24526f"/>
+    </linearGradient>
+    <linearGradient id="aobing-lining" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#6d9ab6"/>
+      <stop offset=".45" stop-color="#2f526a"/>
+      <stop offset="1" stop-color="#12273a"/>
+    </linearGradient>
+    <linearGradient id="aobing-inner" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#9cc3da"/>
+      <stop offset=".5" stop-color="#46637a"/>
+      <stop offset="1" stop-color="#1c2c3a"/>
+    </linearGradient>
+    <linearGradient id="aobing-trou" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#162c40"/>
+      <stop offset=".6" stop-color="#09131d"/>
+      <stop offset="1" stop-color="#05090e"/>
+    </linearGradient>
+    <linearGradient id="aobing-armor" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2a5a7c"/>
+      <stop offset=".45" stop-color="#0e2335"/>
+      <stop offset="1" stop-color="#05090f"/>
+    </linearGradient>
+    <linearGradient id="aobing-shade" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#05090e" stop-opacity=".1"/>
+      <stop offset=".55" stop-color="#05090e" stop-opacity=".45"/>
+      <stop offset="1" stop-color="#05090e" stop-opacity=".9"/>
+    </linearGradient>
+    <linearGradient id="aobing-horn" x1="0" y1="1" x2=".4" y2="0">
+      <stop offset="0" stop-color="#173b55"/>
+      <stop offset=".45" stop-color="#4fa6d6"/>
+      <stop offset="1" stop-color="#e6f6ff"/>
+    </linearGradient>
+    <linearGradient id="aobing-crys" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset=".45" stop-color="#bff0ff"/>
+      <stop offset="1" stop-color="#4fb4e8"/>
+    </linearGradient>
+    <linearGradient id="aobing-shard" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#e6f6ff"/>
+      <stop offset=".5" stop-color="#7fd6ff"/>
+      <stop offset="1" stop-color="#2f7fb0"/>
+    </linearGradient>
+    <linearGradient id="aobing-spike" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#bfeaff"/>
+      <stop offset=".35" stop-color="#3f8fc0"/>
+      <stop offset="1" stop-color="#0a1a28"/>
+    </linearGradient>
+
+    <!-- ice-dragon stream body (fades in from the ground, brightest near the hand) -->
+    <linearGradient id="aobing-stream" gradientUnits="userSpaceOnUse" x1="0" y1="390" x2="0" y2="86">
+      <stop offset="0" stop-color="#7fd6ff" stop-opacity=".22"/>
+      <stop offset=".2" stop-color="#5fb8e8" stop-opacity=".42"/>
+      <stop offset=".7" stop-color="#7fd6ff" stop-opacity=".5"/>
+      <stop offset="1" stop-color="#bfeaff" stop-opacity=".8"/>
+    </linearGradient>
+    <!-- god rays around the crystal -->
+    <radialGradient id="aobing-ray" gradientUnits="userSpaceOnUse" cx="44" cy="82" r="56">
+      <stop offset="0" stop-color="#e6f6ff" stop-opacity=".6"/>
+      <stop offset=".45" stop-color="#7fd6ff" stop-opacity=".2"/>
+      <stop offset="1" stop-color="#7fd6ff" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="aobing-flaregrad" cx=".5" cy=".5" r=".5">
+      <stop offset="0" stop-color="#ffffff" stop-opacity=".95"/>
+      <stop offset=".35" stop-color="#9fe2ff" stop-opacity=".5"/>
+      <stop offset="1" stop-color="#7fd6ff" stop-opacity="0"/>
+    </radialGradient>
+    <!-- out-of-focus foreground frost (bokeh) -->
+    <radialGradient id="aobing-bokehgrad" cx=".5" cy=".5" r=".5">
+      <stop offset="0" stop-color="#bfeaff" stop-opacity=".45"/>
+      <stop offset=".75" stop-color="#7fd6ff" stop-opacity=".18"/>
+      <stop offset="1" stop-color="#7fd6ff" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- centrelines of the ice dragon: front coil at the feet / back coil behind the legs / front coil + climb to the head -->
+    <path id="aobing-c1" d="M210,388C206,380 192,375 164,375C122,375 72,378 48,368C34,362 28,352 28,342"/>
+    <path id="aobing-c2" d="M28,342C28,326 120,306 186,298C208,295 220,292 220,282"/>
+    <path id="aobing-c3" d="M220,282C220,270 196,268 160,266C118,264 80,258 58,238C40,222 30,206 32,188C34,164 16,148 18,122C20,100 24,88 16,72C10,60 10,46 17,38"/>
+
+    <!-- 万龙甲 dragon-scale texture -->
+    <pattern id="aobing-scales" width="6" height="5" patternUnits="userSpaceOnUse">
+      <path d="M0,5 A3,3 0 0 1 6,5 M-3,2.5 A3,3 0 0 1 3,2.5 M3,2.5 A3,3 0 0 1 9,2.5" fill="none" stroke="#7fd6ff" stroke-width=".55" stroke-opacity=".42"/>
+    </pattern>
+
+    <!-- reusable ice shard (rhombus with facet) and sparkle -->
+    <g id="aobing-shardshape">
+      <path d="M0,-7 L2.8,-1 L0,7 L-2.8,-1 Z" fill="url(#aobing-shard)"/>
+      <path d="M0,-7 L0,7" stroke="#ffffff" stroke-width=".6" opacity=".8"/>
+    </g>
+    <path id="aobing-star" d="M0,-4 L.9,-.9 L4,0 L.9,.9 L0,4 L-.9,.9 L-4,0 L-.9,-.9 Z" fill="#ffffff"/>
+  </defs>
+
+  <!-- ===== cold aura behind the hero ===== -->
+  <g class="aobing-fx aobing-pulse">
+    <ellipse cx="124" cy="200" rx="104" ry="186" fill="url(#aobing-aura)"/>
+  </g>
+  <!-- backlight bloom behind head & shoulders (sells the rim light) -->
+  <ellipse cx="142" cy="104" rx="74" ry="84" fill="url(#aobing-back)"/>
+
+  <!-- ===== far ice shards (behind figure) ===== -->
+  <g filter="url(#aobing-glow)" opacity=".7">
+    <g class="aobing-fx aobing-d2"><g transform="translate(206 66) rotate(28) scale(1.1)"><use href="#aobing-shardshape"/></g></g>
+    <g class="aobing-fx aobing-d3"><g transform="translate(58 190) rotate(-24) scale(.8)"><use href="#aobing-shardshape"/></g></g>
+    <g class="aobing-fx aobing-d1"><g transform="translate(178 26) rotate(14) scale(.6)"><use href="#aobing-shardshape"/></g></g>
+  </g>
+
+  <!-- ===== ground: frozen glow ===== -->
+  <ellipse cx="122" cy="386" rx="94" ry="7" fill="url(#aobing-ground)"/>
+  <ellipse cx="122" cy="384" rx="64" ry="3" fill="#7fd6ff" opacity=".45" filter="url(#aobing-soft)"/>
+  <!-- frost sigil ring on the ice + expanding ripple -->
+  <g class="aobing-fx aobing-pulse">
+    <ellipse cx="122" cy="385" rx="76" ry="7.5" fill="none" stroke="#bfeaff" stroke-width="1" stroke-dasharray="18 6 4 8" opacity=".55"/>
+  </g>
+  <g class="aobing-fx aobing-ripple">
+    <ellipse cx="122" cy="385" rx="60" ry="6" fill="none" stroke="#7fd6ff" stroke-width="1.2" opacity=".35"/>
+  </g>
+  <path d="M40,391 L62,382 L98,384 L150,382 L192,385 L206,391 L170,393 L80,393 Z" fill="#0b1a27" opacity=".9"/>
+  <path d="M40,391 L62,382 L98,384 L150,382 L192,385 L206,391" fill="none" stroke="#bfeaff" stroke-width="1" stroke-opacity=".55"/>
+
+  <!-- ===== ice dragon: back coil (passes behind the legs, shows at the left and right turns) ===== -->
+  <g class="aobing-fx aobing-shim">
+  <g filter="url(#aobing-glow)" opacity=".8">
+    <path d="M24,341.8 26.8,335.3 31.6,331.3 36.2,328.5 41.8,325.8 46,324.1 50.6,322.3 55.5,320.6 60.7,318.9 66.3,317.2 72.1,315.6 78.1,313.9 84.4,312.3 90.9,310.7 97.6,309.2 104.4,307.7 111.4,306.2 118.4,304.8 125.6,303.4 132.8,302.1 140,300.8 147.2,299.6 154.3,298.4 161.4,297.3 168.5,296.3 175.4,295.3 182.2,294.4 186.5,293.9 190.7,293.3 195.5,292.5 199.8,291.7 203.6,290.9 207.5,289.7 211.1,288.3 213.9,286.6 215.4,284.7 216,282.3 216,282 216,281.7 224,281.1 224,282 224,282.7 222.6,288.2 219,292.7 214.7,295.5 210.1,297.3 205.6,298.6 201.4,299.6 196.8,300.4 191.9,301.2 187.6,301.8 183.2,302.4 176.5,303.3 169.6,304.2 162.6,305.2 155.6,306.3 148.5,307.5 141.3,308.7 134.2,309.9 127.1,311.3 120,312.6 113,314 106.1,315.5 99.4,317 92.8,318.5 86.4,320.1 80.2,321.7 74.2,323.3 68.5,324.9 63.1,326.6 58,328.2 53.3,329.9 49,331.5 45,333.2 40,335.6 36.1,337.9 32.9,340.6 32,342.2Z" fill="url(#aobing-stream)" stroke="#9fd8f5" stroke-width=".7" stroke-opacity=".6"/>
+    <use href="#aobing-c2" fill="none" stroke="#e6f6ff" stroke-width="5.6" stroke-dasharray=".6 4.4" opacity=".3"/>
+    <path d="M40.5,327.7 31.2,324.3 35.6,330.1ZM55.4,321.9 46.6,317.3 50.4,323.7ZM71.6,317 63.1,311.9 66.4,318.4ZM90.1,312.2 81.8,306.8 84.8,313.5ZM106.8,308.4 98.7,302.8 101.6,309.5ZM124.4,304.8 116.3,299.1 119.1,305.9ZM138.7,302.2 130.8,296.3 133.4,303.2ZM156.7,299.2 148.8,293.2 151.3,300.1ZM174.3,296.7 166.6,290.5 168.9,297.4ZM188.9,294.8 181.2,288.6 183.5,295.5ZM205.3,291.7 197,286.3 200.1,292.9ZM217.4,283.9 207.7,285.8 214.5,288.4Z" fill="url(#aobing-stream)"/>
+  </g>
+  </g>
+
+  <!-- ===== long silver-blue hair streaming right (behind body) ===== -->
+  <path d="M126,42 C146,36 162,46 170,60 C182,78 200,86 216,100 C222,106 224,116 220,122 C214,114 206,110 198,108 C210,124 220,138 222,152 C214,146 206,140 198,136 C206,152 214,172 212,190 C204,180 196,170 188,162 C192,180 192,198 186,214 C180,196 174,178 166,164 L150,120 L136,88 Z" fill="url(#aobing-hair)"/>
+  <g fill="none" stroke="#bfeaff" stroke-width=".7" stroke-linecap="round" opacity=".3">
+    <path d="M150,56 C170,72 190,88 212,104"/>
+    <path d="M152,72 C172,92 190,108 206,130"/>
+    <path d="M154,90 C172,110 188,128 204,156"/>
+    <path d="M156,108 C170,130 180,150 196,180"/>
+    <path d="M158,126 C168,150 176,172 184,204"/>
+  </g>
+  <path d="M150,42 C160,48 166,54 170,60 C182,78 200,86 216,100 C222,106 224,116 220,122" fill="none" stroke="#e6f6ff" stroke-width="1.5" stroke-linecap="round" filter="url(#aobing-glow)"/>
+  <path d="M222,152 C216,146 210,142 204,140 M212,190 C206,182 200,176 194,170" fill="none" stroke="#bfeaff" stroke-width="1" stroke-linecap="round" opacity=".6"/>
+  <!-- head casts shadow on the hair behind the nape -->
+  <path d="M136,86 C144,92 152,104 158,120 L160,134 L144,136 C140,122 138,104 136,86 Z" fill="#08111a" opacity=".7"/>
+
+  <!-- ===== robe behind the legs: pale inner lining + dark outer tail streaming right ===== -->
+  <path d="M106,206 C102,232 102,262 110,286 C120,310 140,326 166,338 C186,346 204,348 222,348 C206,330 190,300 178,272 C170,250 164,228 158,204 Z" fill="url(#aobing-lining)"/>
+  <path d="M156,198 C168,226 182,258 196,288 C206,308 214,328 222,348 C212,338 200,330 190,322 C180,300 172,274 164,250 C160,234 157,218 154,204 Z" fill="url(#aobing-tail)"/>
+  <path d="M108,286 C120,310 140,326 166,338 C186,346 204,348 222,348" fill="none" stroke="#bfeaff" stroke-width="1.1" opacity=".55"/>
+  <path d="M156,198 C168,226 182,258 196,288 C206,308 214,328 222,348" fill="none" stroke="#e6f6ff" stroke-width="1.5" stroke-linecap="round" filter="url(#aobing-glow)"/>
+
+  <!-- ===== legs: far leg stepping out (left), weight on near leg (right) ===== -->
+  <!-- far leg trousers -->
+  <path d="M103,210 C99,234 97,262 96,286 C95,296 92,306 91,316 C90,324 90,330 90,334 L106,336 C106,328 107,320 108,312 C110,302 111,294 113,284 C117,264 123,242 131,220 Z" fill="url(#aobing-trou)"/>
+  <path d="M101,244 C105,258 107,272 105,286 M98,292 C101,296 105,297 109,295" fill="none" stroke="#2a4c66" stroke-width=".9" opacity=".6"/>
+  <!-- far boot -->
+  <path d="M90,332 L106,334 C106,346 105,358 104,368 C104,376 103,382 101,388 L72,388 C70,385 72,381 78,379 C84,377 88,372 89,366 C90,356 90,344 90,332 Z" fill="#09121a"/>
+  <path d="M89.5,332 L106.5,334 L106.5,337.5 L89.5,335.5 Z" fill="#4f7f9e"/>
+  <path d="M89.5,332 L106.5,334" stroke="#bff0ff" stroke-width=".8" opacity=".8"/>
+  <path d="M72,388 L101,388" stroke="#2a4c66" stroke-width="1.4"/>
+  <!-- near leg trousers -->
+  <path d="M131,220 C134,244 137,266 138,288 C138,300 136,316 137,336 L156,336 C157,322 159,308 158,294 C159,268 160,238 157,206 Z" fill="url(#aobing-trou)"/>
+  <path d="M146,236 C148,254 149,272 147,288 M139,292 C144,296 150,296 155,292" fill="none" stroke="#1d3a52" stroke-width=".9" opacity=".7"/>
+  <!-- near boot -->
+  <path d="M137,335 L157,335 C158,348 158,362 158,372 C159,380 158,385 155,388 L126,388 C124,385 127,381 133,379 C137,377 138,372 138,366 C138,356 137,346 137,335 Z" fill="#09121a"/>
+  <path d="M136.5,333.5 L157.5,333.5 L157.5,337 L136.5,337 Z" fill="#3d6884"/>
+  <path d="M136.5,333.5 L157.5,333.5" stroke="#e6f6ff" stroke-width=".8" opacity=".7"/>
+  <path d="M126,388 L155,388" stroke="#2a4c66" stroke-width="1.4"/>
+  <!-- leg rims: ice key on the left edges, silver backlight on the right edges -->
+  <g fill="none" stroke-linecap="round">
+    <path d="M103,212 C99,234 97,262 96,286 C95,296 92,306 91,316 C90,324 90,328 90,331 M90,340 C90,352 90,362 89,368 C86,375 80,378 74,381" stroke="#7fd6ff" stroke-width="1.3" opacity=".9"/>
+    <path d="M157,208 C160,238 159,268 158,294 C159,308 157,322 156,333 M158,342 C158,354 158,364 158,372 C159,380 158,385 155,388" stroke="#e6f6ff" stroke-width="1.4" filter="url(#aobing-glow)"/>
+    <path d="M106,340 C106,350 105,360 104,370" stroke="#bfeaff" stroke-width=".8" opacity=".6"/>
+  </g>
+
+  <!-- ===== near arm: wide sleeve billowing right ===== -->
+  <path d="M162,132 C172,146 180,166 188,190 C194,208 202,226 214,242 C208,246 202,246 196,244 C192,250 184,252 176,248 C170,246 164,242 160,236 C158,210 158,184 160,158 Z" fill="url(#aobing-robe)"/>
+  <path d="M160,236 C168,242 178,248 188,248 C182,244 172,240 164,232 Z" fill="url(#aobing-inner)"/>
+  <path d="M170,168 C176,194 184,220 196,242 M166,190 C168,210 172,228 180,246" fill="none" stroke="#24506e" stroke-width="1" opacity=".7"/>
+  <path d="M162,132 C172,146 180,166 188,190 C194,208 202,226 214,242 C208,246 202,246 196,244" fill="none" stroke="#e6f6ff" stroke-width="1.5" stroke-linecap="round" filter="url(#aobing-glow)"/>
+
+  <!-- ===== hips (outer robe skirt, split at centre front) ===== -->
+  <path d="M105,194 L157,192 C159,204 160,216 160,230 C152,224 142,218 133,214 L131,212 C128,226 124,240 118,252 C112,244 106,236 102,228 C102,216 103,205 105,194 Z" fill="url(#aobing-robe)"/>
+  <path d="M133,214 C142,218 152,224 160,230" fill="none" stroke="#8fc0dc" stroke-width="1" opacity=".6"/>
+  <path d="M131,212 C128,226 124,240 118,252" fill="none" stroke="#9fd0ea" stroke-width="1.3" stroke-linecap="round" opacity=".85"/>
+  <path d="M105,196 C103,208 102,218 102,228 C106,236 112,244 118,252" fill="none" stroke="#7fd6ff" stroke-width="1.1" stroke-linecap="round" opacity=".7"/>
+
+  <!-- ===== neck (drawn under the collar so its base tucks into the robe) ===== -->
+  <path d="M117,94 C118,100 117,106 115,114 L140,114 C137,104 136,98 137,90 Z" fill="url(#aobing-skin)"/>
+  <path d="M117,100 C124,104 132,102 137,96 L138,106 C130,110 122,110 116,107 Z" fill="#05090e" opacity=".6"/>
+  <path d="M137,92 C136,99 137,105 139,111" fill="none" stroke="#e6f6ff" stroke-width=".8" opacity=".55"/>
+
+  <!-- ===== torso (outer robe) ===== -->
+  <path d="M118,106 C110,110 102,114 97,120 C93,134 96,152 102,168 C105,178 106,188 106,196 L155,196 C155,184 157,172 161,158 C166,144 168,132 165,122 C158,114 148,110 138,106 Z" fill="url(#aobing-robe)"/>
+  <!-- inner silver layer at the V-neck + crossing lapels -->
+  <path d="M118,106 L128,136 L139,106 Z" fill="url(#aobing-inner)"/>
+  <path d="M136,106 L142,108 L113,180 L107,176 Z" fill="#4f7a96"/>
+  <path d="M136,106 L107,176" stroke="#bfeaff" stroke-width=".9" opacity=".85"/>
+  <path d="M118,106 L124,108 L129,124 Z" fill="#4f7a96"/>
+  <!-- 万龙甲 cuirass: scale plates over the midriff -->
+  <path d="M103,156 C116,148 140,146 161,142 L157,184 L106,186 Z" fill="url(#aobing-armor)"/>
+  <path d="M103,156 C116,148 140,146 161,142 L157,184 L106,186 Z" fill="url(#aobing-scales)"/>
+  <path d="M103,156 C116,148 140,146 161,142 L157,184 L106,186 Z" fill="url(#aobing-shade)"/>
+  <path d="M103,156 C116,148 140,146 161,142" fill="none" stroke="#bfeaff" stroke-width="1.2" opacity=".85"/>
+  <path d="M104,166 C116,160 138,158 159,154" fill="none" stroke="#7fd6ff" stroke-width=".7" opacity=".35"/>
+  <!-- far torso edge, faint ice key -->
+  <path d="M97,122 C93,134 96,152 102,168 C105,178 106,188 106,194" fill="none" stroke="#7fd6ff" stroke-width="1.1" stroke-linecap="round" opacity=".7"/>
+  <!-- sash -->
+  <path d="M104,182 C120,185 140,184 157,180 L157,195 C140,199 120,200 105,198 Z" fill="#162e42"/>
+  <path d="M104,182 C120,185 140,184 157,180 M105,198 C120,200 140,199 157,195" fill="none" stroke="#9fd0ea" stroke-width="1" opacity=".8"/>
+  <!-- pendant + sash ribbons swaying in the wind -->
+  <g class="aobing-fx aobing-sway">
+    <path d="M126,197 C130,214 136,232 146,254 L142,256 C132,236 126,218 122,198 Z" fill="#41687f"/>
+    <path d="M131,197 C138,212 146,228 158,244 L154,247 C142,232 134,216 128,198 Z" fill="#2b4b60"/>
+    <path d="M124,198 L124,212" stroke="#bfeaff" stroke-width=".8"/>
+    <path d="M124,211 L127,215 L124,221 L121,215 Z" fill="url(#aobing-crys)" filter="url(#aobing-glow)"/>
+  </g>
+
+  <!-- ===== pauldrons (万龙甲) ===== -->
+  <!-- near pauldron, backlit -->
+  <path d="M138,110 C152,104 170,108 178,120 C182,130 181,142 176,154 C168,146 156,140 144,138 C140,130 138,120 138,110 Z" fill="url(#aobing-armor)"/>
+  <path d="M138,110 C152,104 170,108 178,120 C182,130 181,142 176,154 C168,146 156,140 144,138 C140,130 138,120 138,110 Z" fill="url(#aobing-scales)"/>
+  <path d="M144,122 C156,120 168,126 178,136 M144,132 C156,132 166,138 177,147" fill="none" stroke="#9fd0ea" stroke-width=".9" opacity=".5"/>
+  <path d="M146,107 C158,105 172,110 178,120 C182,130 181,142 176,154" fill="none" stroke="#e6f6ff" stroke-width="1.6" stroke-linecap="round" filter="url(#aobing-glow)"/>
+  <!-- far pauldron, top lit by the ice -->
+  <path d="M118,110 C106,108 94,112 88,120 C84,128 84,136 86,144 C92,138 100,134 110,132 C114,126 117,118 118,110 Z" fill="url(#aobing-armor)"/>
+  <path d="M118,110 C106,108 94,112 88,120 C84,128 84,136 86,144 C92,138 100,134 110,132 C114,126 117,118 118,110 Z" fill="url(#aobing-scales)"/>
+
+  <!-- ===== far arm raised, conjuring ice ===== -->
+  <!-- wide sleeve sliding down to the elbow, its hem blown right -->
+  <path d="M104,116 C94,116 82,120 72,124 C68,128 66,132 66,136 C62,152 63,168 70,182 C76,194 86,204 102,214 C99,206 98,198 100,190 C104,178 106,164 104,150 C104,138 104,126 104,116 Z" fill="url(#aobing-robe)"/>
+  <path d="M72,124 C68,128 66,132 66,136 C70,138 74,136 76,132 Z" fill="url(#aobing-inner)"/>
+  <!-- hem turning over: pale lining strip -->
+  <path d="M70,182 C76,194 86,204 102,214 C96,206 88,200 82,192 C78,188 74,186 70,182 Z" fill="url(#aobing-lining)"/>
+  <path d="M77,142 C74,160 77,176 86,192 M89,136 C87,156 90,176 99,198 M98,128 C97,146 99,166 101,182" fill="none" stroke="#24506e" stroke-width="1" opacity=".7"/>
+  <!-- bracer (forearm) -->
+  <path d="M64,134 C60,126 55,118 48,111 L56,105 C61,112 67,120 73,127 Z" fill="#1d3a50"/>
+  <path d="M64,134 C60,126 55,118 48,111 L56,105 C61,112 67,120 73,127 Z" fill="url(#aobing-scales)"/>
+  <!-- open hand, palm up, fingers curling round the ice -->
+  <path d="M47,111 C45,108 44,105 43,101 C41,99 39,97 38,94 C38,93 39,92.5 40,93 C41,95 42,96 43,97 C42,95 41,93 41,91 C41,90 42,89.5 43,90 C44,92 44,94 45,96 C45,94 45,91 46,89 C46.5,88 47.5,88 48,89 C48,91 48,94 48,96 C49,94 50,92 51,90 C51.5,89.5 52.5,89.5 52.5,90.5 C52,93 52,95 52,97 C54,98 56,98 58,96 C59,95.5 60,96 59.5,97 C58,99 57,101 57,103 C57,104 56.5,105.5 56,106 Z" fill="url(#aobing-skin)"/>
+  <path d="M44,103 C47,101 51,100 55,101" fill="none" stroke="#04080c" stroke-width=".6" opacity=".6"/>
+  <!-- ice-lit edges: sleeve top, drape, bracer, fingertips, far pauldron -->
+  <g fill="none" stroke="#7fd6ff" stroke-linecap="round">
+    <path d="M104,116 C94,116 82,120 72,124" stroke-width="1.4" filter="url(#aobing-glow)"/>
+    <path d="M66,136 C62,152 63,168 70,182" stroke-width="1.1" opacity=".75"/>
+    <path d="M48,111 L56,105 C61,112 67,120 73,127" stroke-width="1.3" filter="url(#aobing-glow)"/>
+    <path d="M43,101 C41,99 39,97 38,94 C38,93 39,92.5 40,93 C41,95 42,96 43,97 C42,95 41,93 41,91 C41,90 42,89.5 43,90 C44,92 44,94 45,96 C45,94 45,91 46,89 C46.5,88 47.5,88 48,89 C48,91 48,94 48,96 C49,94 50,92 51,90 C51.5,89.5 52.5,89.5 52.5,90.5 C52,93 52,95 52,97 C54,98 56,98 58,96 C59,95.5 60,96 59.5,97" stroke="#bff0ff" stroke-width=".8"/>
+    <path d="M118,110 C106,108 94,112 88,120 C84,128 84,136 86,144" stroke-width="1.3" filter="url(#aobing-glow)"/>
+  </g>
+
+  <!-- ===== head (slightly scaled for a slimmer 6.5-head teen) ===== -->
+  <g transform="translate(126 100) scale(.94) translate(-126 -100)">
+    <!-- face, 3/4 to the left -->
+    <path d="M126,44 C142,44 152,54 152,66 C152,78 148,88 140,92 C134,96 124,100 116,100 C111,100 108,97 107,94 C106,91 106,89 105,88 C103,87 104,85 104,84 C102,83 101,81 101,80 C102,77 104,74 105,70 C105,66 106,62 108,56 C112,48 118,44 126,44 Z" fill="url(#aobing-skin)"/>
+    <!-- lit planes: temple and far cheekbone catch the ice light -->
+    <path d="M109,58 C113,56 117,57 119,60 C115,60 111,62 108,64 Z" fill="#6f9fbd" opacity=".35"/>
+    <path d="M104,76 C106,79 107,82 107,86 C105,84 103,81 103,78 Z" fill="#8fc0dc" opacity=".4"/>
+    <!-- brows: level, cold -->
+    <path d="M106,68 C108,67 111,67 113,68 M117,68 C121,66 126,65 131,66" fill="none" stroke="#03070a" stroke-width="1.6" stroke-linecap="round"/>
+    <!-- eyes: narrow, glowing ice-blue -->
+    <g class="aobing-fx aobing-eye" filter="url(#aobing-glow)">
+      <path d="M119,74 C121,71.6 126,71 130,72.5 C127,74.5 122,75.4 119,74 Z" fill="#9fe6ff"/>
+      <path d="M108,74 C109,72.6 111,72.1 113,72.6 C112,74 110,74.6 108,74 Z" fill="#9fe6ff"/>
+      <circle cx="124" cy="73.2" r=".9" fill="#ffffff"/>
+      <path d="M117.5,73.3 L133,72.6" stroke="#bff0ff" stroke-width=".45" opacity=".5"/>
+    </g>
+    <!-- cheekbone + nose bridge catch the ice key light -->
+    <path d="M110,79 C113,77.5 117,78 119.5,80.5 C116,80.5 113,81.5 110.5,83.5 Z" fill="#7fb3d1" opacity=".3"/>
+    <path d="M106,72.5 C106.5,75 106.5,78 105.5,81" fill="none" stroke="#9fd0ea" stroke-width=".6" opacity=".45"/>
+    <path d="M105,72 C106,76 106,80 104,83 M105.5,89 L109,89.5" fill="none" stroke="#03070a" stroke-width=".9" stroke-linecap="round" opacity=".8"/>
+    <!-- profile rim (ice key light) -->
+    <path d="M108,58 C106,62 105,66 105,70 C104,74 102,77 101,80 C101,81 102,83 104,84 C104,85 103,87 105,88 C106,89 106,91 107,94 C108,97 111,100 116,100" fill="none" stroke="#bff0ff" stroke-width="1.2" stroke-linecap="round" filter="url(#aobing-glow)"/>
+    <!-- jaw backlight -->
+    <path d="M120,100 C128,98 134,96 140,92" fill="none" stroke="#e6f6ff" stroke-width=".9" opacity=".5"/>
+
+    <!-- hair over the skull, swept back -->
+    <path d="M105,64 C104,50 114,40 128,38 C144,36 156,44 160,56 C162,66 160,78 154,88 L146,96 C145,86 143,76 140,68 C136,62 130,58 122,58 C114,59 108,61 105,64 Z" fill="url(#aobing-haircap)"/>
+    <g fill="none" stroke="#bfeaff" stroke-width=".6" opacity=".35" stroke-linecap="round">
+      <path d="M118,46 C132,44 146,50 154,62"/>
+      <path d="M126,52 C138,54 146,62 150,76"/>
+    </g>
+    <!-- fringe: thin pointed locks across the forehead -->
+    <path d="M126,42 C118,46 110,54 104,67 C110,60 116,55 124,52 Z" fill="url(#aobing-hairtop)"/>
+    <path d="M131,45 C124,50 116,57 111,67 C117,60 124,56 132,54 Z" fill="url(#aobing-hairtop)"/>
+    <path d="M136,50 C130,54 124,59 120,65 C126,61 132,59 138,58 Z" fill="url(#aobing-hairtop)"/>
+    <!-- near-side locks falling past the jaw, blown back -->
+    <path d="M139,62 C143,72 145,86 147,100 C149,110 152,118 157,124 C151,120 147,112 145,104 C143,92 141,78 138,66 Z" fill="url(#aobing-hairtop)"/>
+    <path d="M143,64 C148,74 151,86 154,98 C156,104 159,108 163,111 C158,109 155,104 153,99 C150,88 147,76 143,64 Z" fill="url(#aobing-hairtop)"/>
+    <!-- locks swept back off the crown: break the round skull line into the streaming hair -->
+    <path d="M128,40 C144,36 158,42 166,52 C172,60 180,64 190,66 C180,70 168,67 160,60 C152,52 141,46 128,45 Z" fill="url(#aobing-hairtop)"/>
+    <path d="M138,48 C150,48 158,56 162,66 C166,74 172,80 182,84 C171,85 163,79 159,71 C155,63 148,56 138,53 Z" fill="url(#aobing-hairtop)"/>
+    <path d="M146,58 C153,62 157,70 159,80 C161,88 165,94 171,98 C163,97 158,91 156,83 C154,74 151,66 146,61 Z" fill="url(#aobing-haircap)" opacity=".9"/>
+    <!-- hair rims -->
+    <path d="M112,48 C118,41 128,38 140,38 C152,38 160,44 166,52 C172,60 180,64 190,66" fill="none" stroke="#e6f6ff" stroke-width="1.4" stroke-linecap="round" filter="url(#aobing-glow)"/>
+    <path d="M126,42 C118,46 110,54 104,67" fill="none" stroke="#bff0ff" stroke-width="1" stroke-linecap="round"/>
+    <!-- ice hairpin at the back of the head -->
+    <path d="M156,58 L166,52 L163,60 Z" fill="url(#aobing-crys)" filter="url(#aobing-glow)"/>
+
+    <!-- crystalline dragon horns, curving back -->
+    <g filter="url(#aobing-glow)">
+      <!-- far horn: smaller, set back -->
+      <g opacity=".8">
+        <path d="M114,50 C113,43 115,36 118.5,31.5 C121,28.5 124.5,26.5 129.5,26 C125.5,28.5 123,31.5 121.5,35 C120,39.5 119.5,44.5 119.5,50 Z" fill="url(#aobing-horn)"/>
+        <path d="M117.4,38 C116.6,34 117,30.5 119,27 C119.5,30.5 120.2,33 121,35.5 Z" fill="url(#aobing-horn)"/>
+      </g>
+      <!-- near horn: slim antler beam + forward tine -->
+      <path d="M129,46 C128,38 130,30 135,25 C139,21 144,18.5 152,18 C146,21.5 142,26 140,31 C138.5,36 137.5,41 137,46 Z" fill="url(#aobing-horn)"/>
+      <path d="M133.6,33 C132.4,28.5 132.8,23.5 135.2,18.6 C136.2,23.5 137.2,27 138.4,29.6 Z" fill="url(#aobing-horn)"/>
+    </g>
+    <path d="M137,44 C138,36 140,30 143,26 C145,23 148,20 152,18 M120,48 C120,41 121,36 123,32 C125,29 127,27 129.5,26" fill="none" stroke="#e6f6ff" stroke-width=".8" stroke-linecap="round"/>
+  </g>
+
+  <!-- ===== conjured ice crystal above the raised hand ===== -->
+  <g class="aobing-fx aobing-bloom">
+    <circle cx="45" cy="78" r="30" fill="url(#aobing-orb)"/>
+  </g>
+  <!-- god rays fanning out of the crystal (symmetric pairs so the fill-box centre is the crystal) -->
+  <g class="aobing-fx aobing-rays">
+    <path d="M45.3,82.8 L70.0,37.0 L42.7,81.3 Z M42.7,81.3 L18.0,127.0 L45.3,82.8 Z M44.5,83.4 L78.2,70.9 L43.5,80.6 Z M43.5,80.6 L9.8,93.1 L44.5,83.4 Z M45.4,81.5 L29.8,38.3 L42.6,82.5 Z M42.6,82.5 L58.2,125.7 L45.4,81.5 Z M44.9,80.8 L17.8,63.6 L43.1,83.2 Z M43.1,83.2 L70.2,100.4 L44.9,80.8 Z" fill="url(#aobing-ray)"/>
+  </g>
+  <!-- anamorphic lens flare streak through the crystal core -->
+  <g class="aobing-fx aobing-flare">
+    <ellipse cx="44" cy="86" rx="34" ry="1.6" fill="url(#aobing-flaregrad)"/>
+    <ellipse cx="44" cy="86" rx="14" ry=".7" fill="#ffffff" opacity=".9"/>
+  </g>
+  <g class="aobing-fx aobing-float" filter="url(#aobing-glow)">
+    <path d="M44,92 L40,82 L41,64 L44,54 L47,64 L48,82 Z" fill="url(#aobing-crys)"/>
+    <path d="M43,88 L33,80 L26,70 L30,68 L38,74 L45,84 Z" fill="url(#aobing-crys)"/>
+    <path d="M46,88 L54,78 L60,66 L63,70 L58,80 L48,90 Z" fill="url(#aobing-crys)"/>
+    <path d="M42,90 L34,90 L28,86 L34,85 Z M47,90 L56,88 L60,84 L55,92 Z" fill="url(#aobing-crys)"/>
+    <path d="M44,58 L44,86" stroke="#ffffff" stroke-width=".6" opacity=".7"/>
+    <circle cx="44" cy="87" r="2.6" fill="#ffffff"/>
+  </g>
+  <!-- frost ring orbiting the crystal (tilted) -->
+  <g transform="translate(45 82) scale(1 .32)">
+    <g class="aobing-fx aobing-ring">
+      <circle r="22" fill="none" stroke="#bfeaff" stroke-width="1.8" stroke-dasharray="12 6 3 9" opacity=".85"/>
+    </g>
+  </g>
+
+  <!-- ===== near ice shards & sparkles (front) ===== -->
+  <g filter="url(#aobing-glow)">
+    <g class="aobing-fx aobing-d1"><g transform="translate(52 244) rotate(-18)"><use href="#aobing-shardshape"/></g></g>
+    <g class="aobing-fx aobing-d2"><g transform="translate(216 236) rotate(22) scale(.9)"><use href="#aobing-shardshape"/></g></g>
+    <g class="aobing-fx aobing-d3"><g transform="translate(62 316) rotate(-30) scale(.7)"><use href="#aobing-shardshape"/></g></g>
+    <g class="aobing-fx aobing-d2"><g transform="translate(86 38) rotate(12) scale(.6)"><use href="#aobing-shardshape"/></g></g>
+    <g class="aobing-fx aobing-d1"><g transform="translate(202 290) rotate(35) scale(.65)"><use href="#aobing-shardshape"/></g></g>
+    <g class="aobing-fx aobing-tw"><g transform="translate(62 24) scale(.8)"><use href="#aobing-star"/></g></g>
+    <g class="aobing-fx aobing-tw2"><g transform="translate(68 50) scale(.7)"><use href="#aobing-star"/></g></g>
+    <g class="aobing-fx aobing-tw2"><g transform="translate(184 270) scale(.6)"><use href="#aobing-star"/></g></g>
+    <g class="aobing-fx aobing-tw"><g transform="translate(48 296) scale(.6)"><use href="#aobing-star"/></g></g>
+  </g>
+  <!-- out-of-focus foreground frost (bokeh) for depth -->
+  <g class="aobing-fx aobing-bokeh">
+    <circle cx="206" cy="34" r="5" fill="url(#aobing-bokehgrad)"/>
+    <circle cx="222" cy="262" r="4" fill="url(#aobing-bokehgrad)"/>
+    <circle cx="96" cy="26" r="3.2" fill="url(#aobing-bokehgrad)"/>
+  </g>
+  <!-- drifting frost motes -->
+  <g fill="#e6f6ff">
+    <g class="aobing-fx aobing-tw2"><circle cx="14" cy="206" r="1.1"/></g>
+    <g class="aobing-fx aobing-tw"><circle cx="76" cy="262" r=".9"/></g>
+    <g class="aobing-fx aobing-tw"><circle cx="42" cy="146" r=".9"/></g>
+    <g class="aobing-fx aobing-tw2"><circle cx="226" cy="196" r="1"/></g>
+    <g class="aobing-fx aobing-tw"><circle cx="210" cy="356" r=".9"/></g>
+    <g class="aobing-fx aobing-tw2"><circle cx="102" cy="22" r=".8"/></g>
+  </g>
+
+  <!-- ===== ground ice spikes & frost mist ===== -->
+  <path d="M42,391 L48,368 L54,391 Z M52,391 L60,374 L66,391 Z M33,391 L38,380 L44,391 Z" fill="url(#aobing-spike)"/>
+  <path d="M182,391 L190,370 L196,391 Z M194,391 L203,378 L208,391 Z M174,391 L178,382 L184,391 Z" fill="url(#aobing-spike)"/>
+  <path d="M48,368 L42,391 M60,374 L52,391 M190,370 L182,391 M203,378 L194,391" fill="none" stroke="#e6f6ff" stroke-width=".9" opacity=".85"/>
+  <!-- ===== ice dragon (frost spirit), front coils: tail rises from the frozen ground, wraps his feet,
+       passes behind his legs, sweeps across his thighs, climbs the left side and rears its head over the crystal ===== -->
+  <g class="aobing-fx aobing-shim" filter="url(#aobing-glow)">
+    <!-- translucent ice body, rim-lit edges -->
+    <path d="M209.7,388.1 207.3,384.8 203.9,382.4 199.9,380.6 195.8,379.3 191.8,378.4 187.3,377.7 183.3,377.2 179,376.9 174.4,376.7 169.4,376.7 165.4,376.7 159.8,376.9 155.5,377 151.2,377.1 146.9,377.3 142.5,377.5 138.1,377.6 133.8,377.8 129.4,377.9 125,378.1 120.6,378.2 116.3,378.3 111.9,378.4 107.6,378.5 103.4,378.5 99.2,378.5 95,378.5 90.9,378.4 84.9,378.2 79.1,377.9 73.5,377.5 68.1,376.9 62.9,376.2 58,375.2 53.4,374.1 49.1,372.7 44.9,371 40.8,368.8 37.1,366.4 33.4,363.3 30.3,359.9 27.5,355.7 25.5,351.2 24.4,346.6 24,341.8 24.1,340.5 32,341.9 32,342.2 32.3,345.3 33.1,348.6 34.5,351.8 36.6,354.9 38.9,357.5 41.9,360 44.8,361.9 48.3,363.8 51.8,365.2 55.6,366.4 59.8,367.4 64.3,368.3 69.2,369.2 74.3,370 79.7,370.6 85.4,371.1 91.2,371.5 95.2,371.8 99.3,372 103.5,372.2 107.7,372.3 111.9,372.4 116.2,372.5 120.6,372.6 124.9,372.7 129.3,372.7 133.7,372.8 138.1,372.8 142.5,372.9 146.8,372.9 151.2,373 155.5,373.1 159.8,373.2 165.4,373.3 169.5,373.5 174.5,373.8 179.3,374.3 183.6,374.8 187.7,375.5 192.2,376.5 196.2,377.7 200.4,379.4 204.3,381.6 207.7,384.4 210.3,387.9Z" fill="url(#aobing-stream)" stroke="#bfeaff" stroke-width=".7" stroke-opacity=".75"/>
+    <path d="M216,282 215.4,279.9 213.4,278 210.2,276.4 206.4,275.1 202.7,274.2 198.4,273.4 193.6,272.7 188.4,272 184.2,271.6 179.8,271.3 175.1,270.9 170.2,270.6 165.1,270.3 159.8,270 155.6,269.8 151.4,269.5 147.3,269.3 143.1,269 139,268.6 135,268.2 129,267.6 123.1,266.8 117.3,266 111.6,265 106,263.9 100.6,262.6 95.3,261.3 90.1,259.7 85.1,258 80.3,256.2 75.6,254.2 71.2,251.9 66.9,249.5 62.8,246.9 58.9,244 55.3,241 51.8,237.7 48.4,234.4 45.2,231.1 42.3,227.7 39.6,224.3 36.6,220 34,215.7 31.8,211.2 30.1,206.7 28.8,202 28,197.3 27.7,192.5 28,187.7 28.1,183.4 27.9,179.3 27.2,175.2 26.2,171.2 25,167.3 23.6,163.3 22.1,159.2 20.5,155.1 18.9,150.9 17.4,146.6 16,142 15,137.3 14.2,132.3 13.9,127.2 14,121.7 14.4,117.3 14.9,113.2 15.5,108.5 16,104.1 16.4,100 16.7,96.1 16.8,91.7 16.5,87.6 15.9,83.6 14.8,79.5 13.4,76 11.5,71.8 9.8,67 8.7,62.2 8.2,57.5 8.2,52.8 8.8,48.2 10.2,43.4 12.5,39 17.7,42.2 16.3,45.6 15.4,49.4 15.1,53 15.3,56.8 16,60.8 17.2,64.7 18.8,68.6 20.8,72.8 22.4,77 23.7,81.9 24.5,86.8 24.8,91.6 24.7,96.5 24.4,100.7 23.9,105 23.4,109.4 22.8,114.2 22.4,118.2 22,122.3 21.9,127 22.1,131.5 22.8,135.8 23.8,140 25,144.1 26.4,148.2 27.9,152.3 29.5,156.3 31.1,160.5 32.6,164.7 33.9,169.1 35,173.6 35.8,178.3 36.1,183.2 36,188.3 35.7,192.5 36,196.4 36.6,200.3 37.7,204.2 39.1,208 41,211.8 43.3,215.7 46,219.5 48.5,222.6 51.1,225.7 54.1,228.8 57.3,231.9 60.7,235 63.9,237.8 67.3,240.3 71,242.7 74.9,244.9 79,246.9 83.3,248.8 87.8,250.5 92.5,252.1 97.4,253.6 102.4,254.9 107.7,256 113,257.1 118.5,258.1 124.1,258.9 129.9,259.6 135.8,260.3 139.7,260.6 143.8,261 147.8,261.3 151.9,261.6 156,261.8 160.2,262 165.5,262.3 170.7,262.6 175.6,262.9 180.4,263.3 184.9,263.7 189.3,264.1 194.7,264.7 199.7,265.5 204.3,266.3 208.5,267.4 213.2,268.9 217.9,271.4 222.1,275.5 224,282Z" fill="url(#aobing-stream)" stroke="#d6f1ff" stroke-width=".8" stroke-opacity=".85"/>
+    <!-- scale bands -->
+    <path d="M164,375C122,375 72,378 48,368C34,362 28,352 28,342" fill="none" stroke="#e6f6ff" stroke-width="3.6" stroke-dasharray=".6 4.4" opacity=".4"/>
+    <use href="#aobing-c3" fill="none" stroke="#e6f6ff" stroke-width="5.4" stroke-dasharray=".6 4.4" opacity=".4"/>
+    <!-- dorsal ice fins, swept back toward the tail -->
+    <path d="M140.3,376.8 147.2,381.5 145.7,376.7ZM122.8,377.3 129.6,382.5 128.2,377.2ZM105.4,377.5 112.2,383.4 110.8,377.5ZM88.8,377.3 95.3,383.9 94.2,377.5ZM73.3,376.3 79.3,383.8 78.6,376.9ZM56.1,373.6 61.2,382.1 61.4,374.8ZM39.5,366.7 41.7,376.3 44.2,369.4ZM27.5,353.2 24.4,362.6 30.1,357.9ZM212.3,275.8 213.9,285.6 216.8,278.8ZM198.7,272.2 204,280.5 204,273.2ZM183.6,270.4 189.7,278.2 188.9,270.9ZM168.1,269.3 174.4,276.9 173.4,269.6ZM153.5,268.5 159.9,276 158.9,268.8ZM139,267.4 145.2,275.1 144.4,267.9ZM123,265.6 128.8,273.6 128.3,266.3ZM109.6,263.4 115,271.7 114.9,264.4ZM93.5,259.5 98.1,268.3 98.7,261ZM80.3,254.9 84,264.1 85.3,256.9ZM65.6,247.3 67.7,257 70.2,250.1ZM53.6,237.8 53.8,247.7 57.6,241.4ZM43.2,227 42.2,236.8 46.8,231ZM34.4,214 31.5,223.5 37.1,218.7ZM29.5,199.6 23.9,207.8 30.6,204.9ZM29.4,183.3 22,189.9 29.2,188.7ZM27.1,169.8 21.9,178.2 28.5,175ZM22,155.7 17.8,164.7 24,160.8ZM17.2,141.9 12.2,150.4 18.7,147ZM15,126.2 8.1,133.3 15.2,131.6ZM16.5,110.2 8.5,116.1 15.8,115.6ZM17.9,96.3 10.2,102.5 17.5,101.7ZM16.8,81.8 11,89.9 17.8,87.1ZM11.5,68.6 7.5,77.7 13.6,73.6ZM9.1,52.5 2.7,59.4 9.2,57.9Z" fill="url(#aobing-stream)" stroke="#bfeaff" stroke-width=".4" stroke-opacity=".6"/>
+    <!-- head (local coords face +x), looking down at the crystal -->
+    <g transform="translate(18 34) rotate(30) scale(.95)">
+      <path d="M3,-5 C0,-9 -4,-12 -9,-13 C-5,-10 -2,-7 -1,-3 Z" fill="url(#aobing-shard)"/>
+      <path d="M-2,-8.6 C-2.6,-12 -1.6,-15.5 .6,-18 C0,-15 .2,-12 .6,-9.2 Z" fill="url(#aobing-shard)"/>
+      <path d="M-1,1 L-9,-2 L-5,2.5 L-11,4 L-4,5.5 L-8,9 L0,6 Z" fill="url(#aobing-stream)"/>
+      <path d="M0,-4 C3,-7 7,-8 10,-7 L13,-8.5 L14,-6 C17,-5.5 20,-5 23,-5.5 L25.5,-6.5 C27,-5 27,-3 26,-2 L22,-1.2 L20.5,1 L19,-1 L10,0 L8,2 C5,4 2,4 -1,2 Z" fill="url(#aobing-shard)"/>
+      <path d="M8,2.5 L20,4.5 L22,6.8 L19.6,6.2 L18.4,8 L10,7 C7,6.5 5,5.4 4,4.2 Z" fill="url(#aobing-shard)" opacity=".9"/>
+      <path d="M10,-7 C12,-4 16,-3 23,-3.5 M3,-3 C5,-1 7,0 10,0" fill="none" stroke="#ffffff" stroke-width=".5" opacity=".6"/>
+      <path d="M0,-4 C3,-7 7,-8 10,-7 L13,-8.5 L14,-6 C17,-5.5 20,-5 23,-5.5 L25.5,-6.5 C27,-5 27,-3 26,-2" fill="none" stroke="#ffffff" stroke-width=".8" stroke-linejoin="round"/>
+      <path d="M9.5,-5.2 L13.5,-5.6 L12.4,-4.1 Z" fill="#ffffff"/>
+      <path d="M24,-6 C19,-12 13,-15 8,-16 M21,-1 C16,5 8,10 -2,11" fill="none" stroke="#bfeaff" stroke-width=".7" stroke-linecap="round"/>
+    </g>
+  </g>
+  <!-- light pulses climbing the dragon toward the crystal (3 phase-shifted dash copies;
+       hidden in the static frame, revealed only by the animation) -->
+  <g fill="none" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" stroke-dasharray="4 32" filter="url(#aobing-glow)">
+    <use class="aobing-fx aobing-f1" href="#aobing-c3" opacity="0"/>
+    <use class="aobing-fx aobing-f2" href="#aobing-c3" stroke-dashoffset="-12" opacity="0"/>
+    <use class="aobing-fx aobing-f3" href="#aobing-c3" stroke-dashoffset="-24" opacity="0"/>
+  </g>
+  <g class="aobing-fx aobing-mist" filter="url(#aobing-soft)">
+    <ellipse cx="70" cy="383" rx="30" ry="3.5" fill="#bfeaff" opacity=".35"/>
+    <ellipse cx="174" cy="383" rx="32" ry="3.5" fill="#bfeaff" opacity=".3"/>
+  </g>
+</svg>

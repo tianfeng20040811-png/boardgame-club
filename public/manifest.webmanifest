@@ -1,0 +1,11 @@
+{
+  "name": "开桌 · 桌游社",
+  "short_name": "开桌",
+  "description": "每周五 18:30 · R312 桌游活动报名",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#04050d",
+  "theme_color": "#04050d",
+  "lang": "zh-CN",
+  "icons": [{ "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
+}

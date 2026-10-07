@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>开桌 · 桌游社｜每周五 18:30 · R312</title>
+  <meta name="description" content="桌游社每周五 18:30 在 R312 开桌。看游戏介绍和教学视频，在线预约报名，系统按人数自动分桌。">
+  <meta name="theme-color" content="#04050d">
+  <meta property="og:title" content="开桌 · 桌游社｜每周五 18:30 · R312">
+  <meta property="og:description" content="选好想玩的桌游，在线报名，自动分桌。新手友好。">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="stylesheet" href="/assets/base.css?v=__V__">
+  <link rel="stylesheet" href="/assets/site.css?v=__V__">
+  <script src="/assets/core.js?v=__V__" defer></script>
+  <script src="/assets/home.js?v=__V__" defer></script>
+</head>
+<body class="page-home">
+  <canvas id="space" class="space" aria-hidden="true"></canvas>
+  <div class="scanlines" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <div class="wrap topbar-in">
+      <a class="brand" href="/" aria-label="开桌 · 桌游社 首页">
+        <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><defs><linearGradient id="bm" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#22e5ff"/><stop offset="1" stop-color="#ff2bd6"/></linearGradient></defs><path d="M16 2l12 7v14l-12 7-12-7V9z" fill="none" stroke="url(#bm)" stroke-width="2.2" stroke-linejoin="round"/><circle cx="11.5" cy="12" r="2" fill="#22e5ff"/><circle cx="20.5" cy="20" r="2" fill="#ff2bd6"/><circle cx="16" cy="16" r="2" fill="#fff"/></svg>
+        <span><span class="brand-name">开桌 · 桌游社</span><small>BOARD GAME CLUB</small></span>
+      </a>
+      <nav class="nav" aria-label="主导航">
+        <a href="/" data-nav="/">首页</a>
+        <a href="/games" data-nav="/games">游戏库</a>
+        <a class="nav-cta" href="/signup" data-nav="/signup">报名</a>
+      </nav>
+    </div>
+  </header>
+
+  <div id="announce" class="announce" hidden></div>
+
+  <main id="main">
+    <section class="hero">
+      <div class="wrap hero-in">
+        <div class="hero-copy">
+          <p class="kicker"><span class="blink" aria-hidden="true">●</span> R312 · EVERY FRIDAY 18:30</p>
+          <h1 class="glitch" data-text="周五开桌">周五开桌</h1>
+          <p class="hero-en" aria-hidden="true">BOARD&nbsp;GAME&nbsp;NIGHT <span>//</span> SYSTEM ONLINE</p>
+          <p class="hero-lead">每周五 18:30，R312 教室见。<br>选好想玩的游戏，系统按人数自动组桌；<br class="br-wide">没玩过也没关系，会玩的同学带你上手。</p>
+          <div class="hero-cta">
+            <a class="btn btn-primary btn-lg" href="/signup">立即报名 <span aria-hidden="true">→</span></a>
+            <a class="btn btn-ghost btn-lg" href="/games">游戏 &amp; 教学视频</a>
+          </div>
+          <div id="mine" class="mine-strip" hidden></div>
+        </div>
+
+        <div class="hero-hud">
+          <div class="portal" aria-hidden="true">
+            <div class="ring ring-1"></div>
+            <div class="ring ring-2"></div>
+            <div class="ring ring-3"></div>
+            <div class="cube-stage">
+              <div class="cube">
+                <div class="face f1"><i></i></div>
+                <div class="face f2"><i></i><i></i></div>
+                <div class="face f3"><i></i><i></i><i></i></div>
+                <div class="face f4"><i></i><i></i><i></i><i></i></div>
+                <div class="face f5"><i></i><i></i><i></i><i></i><i></i></div>
+                <div class="face f6"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="countdown panel hud" id="countdown">
+            <div class="cd-head"><span class="kicker">NEXT SESSION</span><span class="pill pill-idle" id="cdStatus" role="status">同步中</span></div>
+            <div class="cd-title" id="cdTitle">每周五 18:30 · R312</div>
+            <div class="cd-digits" id="cdDigits" role="timer" aria-label="距离开局倒计时">
+              <div><b>--</b><small>天</small></div><span>:</span>
+              <div><b>--</b><small>时</small></div><span>:</span>
+              <div><b>--</b><small>分</small></div><span>:</span>
+              <div><b>--</b><small>秒</small></div>
+            </div>
+            <div class="cd-foot" id="cdFoot">报名开放至开局前</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="wrap">
+        <div class="stats" id="stats">
+          <div class="stat"><b data-stat="signups">–</b><span>本场已报名</span></div>
+          <div class="stat"><b data-stat="tables">–</b><span>已成桌</span></div>
+          <div class="stat"><b data-stat="seats">–</b><span>剩余座位</span></div>
+          <div class="stat"><b data-stat="games">–</b><span>可选游戏</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="board" aria-labelledby="boardTitle">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <p class="kicker">// LIVE TABLES</p>
+            <h2 class="section-title" id="boardTitle">本场战况</h2>
+            <p class="section-sub" id="boardSub">每款游戏的报名人数与成桌进度，实时更新。</p>
+          </div>
+          <a class="btn btn-ghost btn-sm" href="/signup">我也要上桌 →</a>
+        </div>
+        <div class="board" id="boardList">
+          <div class="skeleton" style="height:76px"></div>
+          <div class="skeleton" style="height:76px"></div>
+          <div class="skeleton" style="height:76px"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="games" aria-labelledby="gamesTitle">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <p class="kicker">// GAME BAY</p>
+            <h2 class="section-title" id="gamesTitle">游戏舱</h2>
+            <p class="section-sub">点开任意一款，看介绍、规则速览和 B 站教学视频。</p>
+          </div>
+          <a class="btn btn-ghost btn-sm" href="/games">筛选全部游戏 →</a>
+        </div>
+        <div class="cards" id="gameCards">
+          <div class="skeleton" style="height:260px"></div>
+          <div class="skeleton" style="height:260px"></div>
+          <div class="skeleton" style="height:260px"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="how" aria-labelledby="howTitle">
+      <div class="wrap">
+        <p class="kicker">// HOW IT WORKS</p>
+        <h2 class="section-title" id="howTitle">三步上桌</h2>
+        <ol class="steps">
+          <li class="step panel"><span class="step-no">01</span><h3>挑游戏</h3><p>在游戏库看介绍和教学视频，挑一款第一志愿，再选一款第二志愿备用。</p></li>
+          <li class="step panel"><span class="step-no">02</span><h3>报名</h3><p>填称呼和熟悉程度，二十秒搞定。系统按每桌人数自动分桌，满员可以候补。</p></li>
+          <li class="step panel"><span class="step-no">03</span><h3>周五到场</h3><p>18:30 到 R312，按页面上的桌号入座。报名后可以随时在原手机上修改或取消。</p></li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="section" id="faq" aria-labelledby="faqTitle">
+      <div class="wrap faq-wrap">
+        <div>
+          <p class="kicker">// FAQ</p>
+          <h2 class="section-title" id="faqTitle">常见问题</h2>
+        </div>
+        <div class="faq">
+          <details><summary>完全没玩过，可以来吗？</summary><p>可以。报名时选“没玩过”，系统会尽量把熟练、愿意教学的同学分到你那一桌；也可以提前看游戏库里的教学视频。</p></details>
+          <details><summary>报名截止到什么时候？</summary><p>每场开始前（周五 18:30）都可以在线报名或修改。开始后线上报名关闭，可以直接到现场找组织者。</p></details>
+          <details><summary>想玩的游戏满员了怎么办？</summary><p>报名时选一个第二志愿：第一志愿满员会自动转过去；两边都满就进入候补，有人取消会按报名先后自动补位。</p></details>
+          <details><summary>能帮朋友一起报名吗？</summary><p>每个人单独报名一条（填朋友的称呼）。报名成功页有“再报一位”，会保留你选的游戏，几秒就能报完。</p></details>
+          <details><summary>怎么修改或取消报名？</summary><p>在报名时用的那台手机上打开报名页，“我的报名”里可以修改或取消。换了设备的话，请联系组织者处理。</p></details>
+          <details><summary>会晚到怎么办？</summary><p>报名时在备注里写上预计到达时间，组织者分桌时会留意。</p></details>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap footer-in">
+      <span>© 2026 开桌 · 桌游社 · 每周五 18:30 · R312</span>
+      <span><a href="/games">游戏库</a> · <a href="/signup">报名</a> · <a href="/admin">管理</a></span>
+    </div>
+  </footer>
+</body>
+</html>

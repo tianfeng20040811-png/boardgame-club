@@ -1,0 +1,18 @@
+# 可选：防止 Render 免费实例休眠（仅建议公开仓库使用）。
+# 启用方法：仓库 Settings → Secrets and variables → Actions → Variables 新建 KEEPALIVE_URL（如 https://boardgame-club.onrender.com）。
+name: keep-alive
+on:
+  schedule:
+    - cron: "*/10 0-15 * * *" # UTC 00:00–15:59 = UTC+8 08:00–23:59
+  workflow_dispatch:
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Ping /healthz
+        env:
+          URL: ${{ vars.KEEPALIVE_URL }}
+        run: |
+          if [ -z "$URL" ]; then echo "KEEPALIVE_URL 未设置，跳过"; exit 0; fi
+          curl -fsS --max-time 90 "$URL/healthz" || echo "ping failed"

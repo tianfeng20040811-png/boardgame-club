@@ -1,0 +1,387 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 400" width="240" height="400">
+  <!-- 小白 / 白素贞 — original cinematic hero drawing: backlit, jade rim light, white-snake spirit coiling around her -->
+  <defs>
+    <!-- ===== cloth / skin / hair tones (deep shadow -> dark jade; white silk read through its glowing edges) ===== -->
+    <linearGradient id="xiaobai-skirt" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#a9cbbf"/>
+      <stop offset=".14" stop-color="#557a6f"/>
+      <stop offset=".5" stop-color="#2a3d38"/>
+      <stop offset=".82" stop-color="#47726a"/>
+      <stop offset="1" stop-color="#93cdbb"/>
+    </linearGradient>
+    <linearGradient id="xiaobai-vfade" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#020605" stop-opacity="0"/>
+      <stop offset=".72" stop-color="#020605" stop-opacity=".38"/>
+      <stop offset="1" stop-color="#020605" stop-opacity=".15"/>
+    </linearGradient>
+    <linearGradient id="xiaobai-gauze" gradientUnits="userSpaceOnUse" x1="136" y1="0" x2="228" y2="0">
+      <stop offset="0" stop-color="#bff7e2" stop-opacity="0"/>
+      <stop offset=".55" stop-color="#7fe8c2" stop-opacity=".14"/>
+      <stop offset="1" stop-color="#e2fff4" stop-opacity=".5"/>
+    </linearGradient>
+    <linearGradient id="xiaobai-cloth" x1="0" y1="0" x2="1" y2=".25">
+      <stop offset="0" stop-color="#a3c8bb"/>
+      <stop offset=".3" stop-color="#557a6f"/>
+      <stop offset=".75" stop-color="#2c403a"/>
+      <stop offset="1" stop-color="#4f7e71"/>
+    </linearGradient>
+    <linearGradient id="xiaobai-sleeve" gradientUnits="userSpaceOnUse" x1="138" y1="0" x2="230" y2="0">
+      <stop offset="0" stop-color="#2b3e38"/>
+      <stop offset=".45" stop-color="#3b6157"/>
+      <stop offset=".75" stop-color="#5e9e8b" stop-opacity=".9"/>
+      <stop offset="1" stop-color="#c6f9e6" stop-opacity=".6"/>
+    </linearGradient>
+    <linearGradient id="xiaobai-farsleeve" gradientUnits="userSpaceOnUse" x1="52" y1="0" x2="106" y2="0">
+      <stop offset="0" stop-color="#8fc6b4" stop-opacity=".92"/>
+      <stop offset=".35" stop-color="#466a60"/>
+      <stop offset="1" stop-color="#25352f"/>
+    </linearGradient>
+    <linearGradient id="xiaobai-skin" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#dfe9e4"/>
+      <stop offset=".3" stop-color="#a2b0ab"/>
+      <stop offset="1" stop-color="#3f4a47"/>
+    </linearGradient>
+    <linearGradient id="xiaobai-hair" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#12231f"/>
+      <stop offset=".5" stop-color="#050b0a"/>
+      <stop offset="1" stop-color="#020504"/>
+    </linearGradient>
+    <linearGradient id="xiaobai-sash" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2a8f6c"/>
+      <stop offset=".45" stop-color="#0f4a37"/>
+      <stop offset="1" stop-color="#072a1f"/>
+    </linearGradient>
+    <linearGradient id="xiaobai-under" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3e5f56"/>
+      <stop offset=".6" stop-color="#6f998b"/>
+      <stop offset="1" stop-color="#a9dcc9"/>
+    </linearGradient>
+    <!-- ===== light & atmosphere ===== -->
+    <radialGradient id="xiaobai-back" cx=".5" cy=".5" r=".5">
+      <stop offset="0" stop-color="#e4fff4" stop-opacity=".4"/>
+      <stop offset=".3" stop-color="#7dffcf" stop-opacity=".16"/>
+      <stop offset=".65" stop-color="#5fffc0" stop-opacity=".05"/>
+      <stop offset="1" stop-color="#5fffc0" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="xiaobai-mistg" cx=".5" cy=".5" r=".5">
+      <stop offset="0" stop-color="#d2ffec" stop-opacity=".7"/>
+      <stop offset=".55" stop-color="#9dffd6" stop-opacity=".22"/>
+      <stop offset="1" stop-color="#5fffc0" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="xiaobai-groundg" cx=".5" cy=".5" r=".5">
+      <stop offset="0" stop-color="#5fffc0" stop-opacity=".55"/>
+      <stop offset=".5" stop-color="#5fffc0" stop-opacity=".2"/>
+      <stop offset="1" stop-color="#5fffc0" stop-opacity="0"/>
+    </radialGradient>
+    <!-- ===== filters: crisp glow (rims, snake core) + soft bloom ===== -->
+    <filter id="xiaobai-glow" filterUnits="userSpaceOnUse" x="0" y="0" width="240" height="400">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="1.8" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="xiaobai-soft" filterUnits="userSpaceOnUse" x="0" y="0" width="240" height="400">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="4"/>
+    </filter>
+    <!-- ===== spirit-snake body geometry: body / inner / rim band / belly scales (A,C pass in front; B,N behind) ===== -->
+    <path id="xiaobai-sA" d="M33.8,377.8L36.7,378.6Q39.6,379.5 42.6,380.2T48.5,381.6T54.5,382.8T60.6,383.7T66.7,384.3T72.8,384.7T78.9,384.9T85,385T91.1,384.9T97.2,384.8T103.3,384.5T109.3,384.1T115.4,383.5T121.5,382.9T127.6,382T133.6,381.1T139.6,379.9T145.6,378.5T151.5,377T157.4,375.4T163.3,373.5T169.1,371.5T174.8,369.2T180.4,366.7T186,364.1T191.4,361.3T196.8,358.1T202,354.3T206.7,350T210.7,345T214,339.4T216.2,333.1L216.9,329.6L211.2,329.6L210.7,332.1Q210.2,334.6 209,337T206.2,341.9T202.7,346.3T198.6,350.2T193.9,353.7T188.9,356.7T183.7,359.5T178.3,362.2T172.9,364.7T167.3,366.9T161.7,369T156.1,370.9T150.3,372.6T144.5,374.2T138.7,375.6T132.8,376.8T126.9,377.9T121,378.8T115,379.6T109,380.2T103,380.7T97,381.1T91,381.4T85,381.6T78.9,381.6T72.9,381.5T66.9,381.3T60.9,380.9T54.9,380.2T49,379.2T43.1,378.1T37.2,376.8L34.2,376.2Z"/>
+    <path id="xiaobai-sAi" d="M33.9,377.5L36.8,378.3Q39.7,379.1 42.7,379.8T48.6,381.2T54.6,382.3T60.7,383.1T66.7,383.7T72.8,384.1T78.9,384.3T85,384.3T91.1,384.3T97.1,384.1T103.2,383.8T109.3,383.3T115.3,382.8T121.4,382.1T127.4,381.3T133.5,380.2T139.4,379.1T145.4,377.7T151.3,376.2T157.2,374.5T163,372.7T168.8,370.6T174.4,368.3T180,365.9T185.5,363.2T191,360.4T196.3,357.2T201.3,353.6T205.9,349.3T209.8,344.4T213.1,339T215.1,332.9L215.8,329.6L212.2,329.6L211.7,332.3Q211.2,334.9 210,337.5T207.1,342.5T203.4,347T199.2,351T194.5,354.5T189.4,357.6T184.1,360.4T178.7,363T173.2,365.5T167.7,367.8T162,369.9T156.3,371.7T150.5,373.5T144.7,375T138.9,376.4T133,377.6T127,378.7T121.1,379.6T115.1,380.3T109.1,380.9T103.1,381.4T97,381.8T91,382.1T85,382.2T78.9,382.2T72.9,382.1T66.8,381.8T60.8,381.4T54.9,380.7T48.9,379.7T43,378.5T37.1,377.2L34.1,376.5Z"/>
+    <path id="xiaobai-sAr" d="M34.1,376.6L37.1,377.3Q40,378 43,378.6T48.9,379.8T54.8,380.8T60.8,381.6T66.8,382T72.9,382.3T78.9,382.4T85,382.4T91,382.3T97,382T103.1,381.6T109.1,381.2T115.1,380.5T121.1,379.8T127.1,378.9T133,377.9T138.9,376.7T144.8,375.3T150.6,373.7T156.4,372T162.1,370.1T167.8,368.1T173.3,365.8T178.8,363.3T184.3,360.7T189.6,357.8T194.7,354.8T199.4,351.3T203.7,347.2T207.3,342.6T210.3,337.6T212.1,332.3L212.6,329.6L211.4,329.6L210.9,332.1Q210.4,334.6 209.2,337.1T206.4,342T202.8,346.5T198.7,350.4T194.1,353.8T189,356.9T183.8,359.7T178.4,362.3T172.9,364.8T167.4,367.1T161.8,369.2T156.1,371.1T150.4,372.8T144.6,374.3T138.7,375.8T132.8,377T126.9,378.1T121,379T115,379.7T109,380.3T103,380.9T97,381.3T91,381.5T85,381.7T78.9,381.7T72.9,381.6T66.9,381.4T60.9,381T54.9,380.3T49,379.3T43.1,378.1T37.1,376.9L34.2,376.3Z"/>
+    <path id="xiaobai-sAs" d="M94.3,384.5Q93,383.1 94.2,381.7M102.3,384.1Q100.9,382.7 102.1,381.2M110.3,383.6Q108.8,382.2 110.1,380.5M118.3,382.8Q116.7,381.4 118,379.7M126.3,381.8Q124.6,380.4 125.8,378.6M134.3,380.5Q132.5,379.1 133.6,377.2M142.2,378.8Q140.3,377.5 141.4,375.5M150,376.9Q148,375.6 149.1,373.5M157.8,374.8Q155.7,373.5 156.7,371.3M165.5,372.3Q163.2,371.1 164.2,368.7M173,369.4Q170.7,368.3 171.6,365.8M180.4,366.1Q178,365.1 178.8,362.6M187.7,362.6Q185.2,361.7 185.9,359.1M194.8,358.7Q192.2,357.9 192.7,355.2M201.6,354Q198.9,353.6 199,350.8M207.6,348.1Q204.8,348.2 204.4,345.4M212.5,341.3Q209.6,341.9 208.8,339.1M215.8,333.4Q213.2,334.8 211.5,332.4"/>
+    <path id="xiaobai-sB" d="M216.8,330.5L216.3,327Q215.9,323.5 214.4,320.5T211.1,314.8T206.8,309.8T201.7,305.7T196.4,302.3T190.8,299.4T185.3,296.8T179.7,294.2T174.1,291.7T168.4,289.4T162.6,287.3T156.9,285.2T151.1,283.3T145.3,281.4T139.5,279.5T133.8,277.6T128,275.7T122.2,273.8T116.4,272T110.6,270.2T104.8,268.4T99,266.6T93.2,264.7T87.6,262.8T81.9,260.8T76.2,258.7T70.4,256.6T64.7,254.6T59.2,252.5T53.8,250.1T48.7,247.5T43.9,244.5T39.2,241T35,237.2T31.3,233.1T28.7,228.9L27.9,226.8L20,228.4L21.4,231.8Q22.9,235.3 25,237.9T29.5,242.8T34.3,247.1T39.4,250.9T44.9,254.2T50.6,257.1T56.4,259.5T62.2,261.7T67.9,263.7T73.7,265.7T79.4,267.7T85.2,269.7T91,271.6T96.8,273.4T102.7,275.2T108.5,277T114.3,278.7T120.1,280.5T125.9,282.3T131.6,284.1T137.4,286T143.2,287.8T149,289.6T154.8,291.5T160.5,293.4T166.1,295.4T171.7,297.6T177.2,300T182.7,302.4T188.1,305T193.4,307.6T198.3,310.6T202.7,314.1T206.4,318.2T209.2,322.9T210.8,327.8L211.1,330.3Z"/>
+    <path id="xiaobai-sBi" d="M215.7,330.5L215.3,327.2Q214.8,323.9 213.4,320.9T210.2,315.4T206,310.6T201.1,306.6T195.8,303.3T190.3,300.5T184.8,297.9T179.3,295.3T173.7,292.9T168,290.6T162.2,288.4T156.5,286.4T150.7,284.5T144.9,282.6T139.1,280.8T133.3,278.9T127.6,277T121.8,275.1T116,273.3T110.2,271.5T104.4,269.7T98.6,267.9T92.8,266T87.1,264.1T81.4,262.1T75.7,260T69.9,258T64.3,255.9T58.6,253.8T53.2,251.5T47.9,248.8T43,245.7T38.3,242.1T33.9,238.3T30.1,234.1T27.4,229.5L26.4,227.1L21.5,228.1L22.8,231.3Q24.2,234.5 26.2,237T30.5,241.8T35.3,245.9T40.3,249.6T45.6,253T51.2,255.8T56.9,258.2T62.7,260.3T68.4,262.4T74.1,264.4T79.9,266.4T85.6,268.4T91.4,270.3T97.2,272.1T103.1,273.9T108.9,275.7T114.7,277.4T120.5,279.2T126.3,281T132,282.9T137.8,284.7T143.6,286.6T149.4,288.4T155.2,290.3T160.9,292.2T166.5,294.3T172.1,296.5T177.7,298.9T183.2,301.4T188.6,303.9T194,306.6T199,309.7T203.5,313.3T207.3,317.6T210.2,322.4T211.8,327.6L212.2,330.3Z"/>
+    <path id="xiaobai-sBr" d="M216.6,330.5L216.1,327.1Q215.6,323.6 214.2,320.6T210.9,314.9T206.6,310T201.6,305.9T196.2,302.6T190.7,299.7T185.2,297T179.6,294.5T174,292T168.3,289.7T162.6,287.5T156.8,285.5T151,283.6T145.2,281.7T139.4,279.8T133.7,277.9T127.9,276T122.1,274.1T116.3,272.3T110.5,270.5T104.7,268.7T98.9,266.8T93.2,265T87.5,263.1T81.8,261T76.1,259T70.3,256.9T64.6,254.9T59.1,252.7T53.6,250.4T48.5,247.8T43.7,244.7T39.1,241.2T34.7,237.4T31,233.3T28.5,229.1L27.5,226.9L25.9,227.2L26.9,229.7Q27.9,232.1 29.7,234.3T33.6,238.6T38,242.5T42.7,246.1T47.7,249.2T53,251.9T58.5,254.2T64.1,256.4T69.8,258.4T75.5,260.4T81.3,262.5T87,264.5T92.7,266.4T98.4,268.3T104.2,270.1T110,271.9T115.8,273.7T121.7,275.5T127.4,277.4T133.2,279.3T139,281.1T144.8,283T150.6,284.9T156.3,286.8T162.1,288.8T167.8,290.9T173.5,293.2T179.1,295.7T184.6,298.2T190.2,300.8T195.6,303.7T200.9,306.9T205.8,310.9T209.9,315.6T213.1,321.1T214.9,327.2L215.4,330.5Z"/>
+    <path id="xiaobai-sC" d="M28,227.5L28,225.2Q27.9,223 28.7,220.6T30.8,216T33.9,212.1T38,208.9T42.9,206.3T48.2,203.9T53.8,201.7T59.5,199.6T65.1,197.3T70.7,195.2T76.4,193.2T82.1,191.4T87.9,189.5T93.7,187.8T99.5,186T105.3,184.2T111.1,182.3T116.9,180.5T122.7,178.7T128.5,176.9T134.3,175.1T140.1,173.3T145.9,171.4T151.7,169.6T157.6,167.7T163.3,165.9T169,164.1T174.8,162.5T180.7,160.8T186.7,158.9T192.7,156.8T198.6,154.2T204.3,150.9T209.7,147T214.6,142.3T218.8,136.8L220.6,133.7L211.7,129.5L210.4,131.7Q209.1,133.8 207.3,135.8T203.5,139.5T199,142.8T194.3,145.6T189.1,147.9T183.7,149.8T178,151.6T172.2,153.4T166.3,155.1T160.4,156.9T154.6,158.9T148.9,160.8T143.1,162.6T137.3,164.5T131.6,166.3T125.8,168.2T120,170.1T114.2,171.9T108.4,173.8T102.6,175.7T96.8,177.5T91,179.4T85.2,181.2T79.4,183.1T73.6,185.1T67.8,187.2T62,189.4T56.4,191.7T50.7,193.9T45,196.2T39.2,198.8T33.5,202T28.1,206.4T23.8,211.9T21,218.3T20.1,225.5L20.2,229.3Z"/>
+    <path id="xiaobai-sCi" d="M26.5,227.8L26.5,225.3Q26.4,222.8 27.2,220.2T29.5,215.3T32.8,211T37.1,207.6T42.2,204.9T47.6,202.5T53.2,200.3T58.9,198.1T64.6,195.8T70.2,193.7T75.9,191.7T81.6,189.8T87.4,188T93.2,186.2T99,184.4T104.8,182.6T110.6,180.7T116.4,178.9T122.2,177T128,175.2T133.8,173.4T139.6,171.6T145.4,169.8T151.2,167.9T157,166T162.8,164.2T168.5,162.4T174.3,160.7T180.2,159T186.1,157.2T192,155.1T197.8,152.6T203.3,149.4T208.5,145.6T213.2,141.1T217.2,135.8L218.9,132.9L213.4,130.3L212,132.7Q210.6,135 208.7,137T204.6,140.9T200,144.3T195.1,147.2T189.8,149.6T184.2,151.6T178.5,153.4T172.7,155.1T166.9,156.8T161,158.6T155.2,160.5T149.4,162.4T143.7,164.3T137.9,166.2T132.1,168T126.3,169.8T120.5,171.7T114.7,173.6T108.9,175.4T103.1,177.3T97.3,179.1T91.5,181T85.7,182.8T79.9,184.7T74.1,186.6T68.3,188.7T62.6,190.9T57,193.2T51.3,195.4T45.6,197.7T39.9,200.2T34.4,203.3T29.2,207.4T25.2,212.7T22.5,218.7T21.6,225.5L21.7,229Z"/>
+    <path id="xiaobai-sCr" d="M22.1,228.9L22.1,225.4Q22,222 22.9,218.9T25.6,212.9T29.6,207.8T34.6,203.7T40.2,200.7T45.8,198.1T51.5,195.9T57.2,193.6T62.8,191.4T68.5,189.2T74.3,187.1T80.1,185.2T85.9,183.3T91.7,181.5T97.5,179.6T103.3,177.8T109.1,175.9T114.8,174.1T120.6,172.2T126.4,170.4T132.2,168.5T138,166.7T143.8,164.8T149.6,163T155.4,161.1T161.2,159.2T167,157.4T172.9,155.6T178.7,153.9T184.4,152.1T190,150.1T195.3,147.7T200.4,144.8T205,141.4T209.1,137.4T212.5,133L213.9,130.6L212.1,129.7L210.7,131.9Q209.4,134.1 207.6,136T203.7,139.8T199.2,143.1T194.4,145.9T189.3,148.2T183.8,150.2T178.1,152T172.3,153.7T166.4,155.5T160.6,157.3T154.8,159.2T149,161.1T143.2,163T137.5,164.8T131.7,166.7T125.9,168.5T120.1,170.4T114.3,172.3T108.5,174.2T102.7,176T96.9,177.9T91.1,179.7T85.3,181.5T79.5,183.4T73.7,185.4T67.9,187.5T62.2,189.7T56.5,192T50.9,194.2T45.1,196.5T39.4,199.1T33.7,202.3T28.4,206.6T24.1,212.1T21.3,218.4T20.4,225.5L20.5,229.2Z"/>
+    <path id="xiaobai-sCs" d="M26.9,223.9Q23.5,226.4 20.7,223.3M28.9,217.4Q24.8,218.6 23.2,214.6M32.8,211.7Q28.5,211.5 28.3,207.2M38.5,207.4Q34.4,206.1 35.3,201.8M45.4,204.1Q41.4,202.3 42.8,198.1M52.7,201.2Q48.8,199.2 50.3,195M60.2,198.3Q56.2,196.3 57.8,192.1M67.6,195.4Q63.6,193.3 65.2,189.1M75,192.7Q71.1,190.5 72.8,186.3M82.6,190.2Q78.6,187.9 80.5,183.8M90.1,187.8Q86.2,185.5 88.1,181.3M97.8,185.5Q93.8,183.1 95.7,178.9M105.5,183.1Q101.4,180.7 103.4,176.5M113.1,180.7Q109,178.3 110.9,174M120.7,178.3Q116.6,175.9 118.6,171.5M128.3,175.9Q124.2,173.4 126.2,169.1M136,173.5Q131.8,171 133.8,166.7M143.6,171.1Q139.4,168.6 141.4,164.2M151.3,168.7Q147,166.2 149,161.8M158.9,166.2Q154.6,163.8 156.6,159.3M166.4,163.8Q162.2,161.3 164.3,156.8M174.1,161.6Q169.8,159 172,154.5M181.8,159.4Q177.5,156.8 179.6,152.3M189.6,156.9Q185.1,154.5 187.1,149.8M197.4,153.7Q192.7,151.8 194.1,146.9M204.8,149.4Q199.8,148.2 200.5,143.2M211.5,144.1Q206.4,143.7 206.3,138.5M217.3,137.4Q212.2,138.2 210.9,133.2"/>
+    <path id="xiaobai-sN" d="M220.2,134.6L221.4,131.2Q222.6,127.9 223.1,124.6T223.7,118.3T223.9,112.3T224.1,106.4T224.2,100.4T224.1,94.3T223.7,88.2T223.2,82.2T222.4,76.2T221.4,70.2T220.1,64.2T218.5,58.2T216.6,52.4T214.3,46.6T211.5,40.8T208,35.3T203.4,30.2T197.3,26.1T189.7,24.1T182.2,25L178.9,26L183.1,36L185.3,35.2Q187.6,34.5 189.3,34.6T192.8,35.6T196.2,38T199.5,41.6T202.3,45.9T204.7,50.7T206.7,55.9T208.5,61.2T210,66.6T211.2,72.1T212.2,77.7T213,83.4T213.5,89T213.9,94.7T214.1,100.4T214,106.2T213.9,112T213.7,117.8T213.3,123.2T212.2,127.9L211.4,130.2Z"/>
+    <path id="xiaobai-sNi" d="M218.6,133.7L219.7,130.6Q220.8,127.5 221.2,124.4T221.8,118.2T222,112.3T222.2,106.4T222.3,100.4T222.1,94.4T221.8,88.4T221.2,82.4T220.4,76.5T219.4,70.5T218.2,64.6T216.6,58.8T214.7,53T212.5,47.4T209.8,41.8T206.4,36.5T202,31.7T196.5,27.9T189.6,26.1T182.8,26.9L179.7,27.9L182.3,34.1L184.8,33.3Q187.2,32.4 189.4,32.6T193.6,33.8T197.6,36.5T201.1,40.4T204.1,45T206.5,49.9T208.6,55.2T210.4,60.6T211.9,66.2T213.1,71.8T214.1,77.4T214.9,83.2T215.5,88.9T215.8,94.6T216,100.4T215.9,106.2T215.8,112.1T215.6,117.9T215.1,123.5T213.9,128.6L213.1,131Z"/>
+    <path id="xiaobai-sNr" d="M219.9,134.4L221.1,131.1Q222.2,127.8 222.7,124.6T223.3,118.3T223.5,112.3T223.7,106.4T223.8,100.4T223.7,94.3T223.3,88.3T222.8,82.2T222,76.2T220.9,70.2T219.7,64.3T218.1,58.4T216.2,52.5T214,46.7T211.2,41T207.6,35.5T203.1,30.5T197.1,26.5T189.7,24.5T182.4,25.4L179.1,26.4L179.9,28.5L183,27.5Q186.1,26.5 189.6,26.7T196.2,28.5T201.6,32.1T205.9,36.9T209.2,42.1T211.9,47.6T214.1,53.2T216,59T217.5,64.8T218.8,70.7T219.8,76.6T220.6,82.5T221.2,88.4T221.5,94.4T221.6,100.4T221.6,106.3T221.4,112.2T221.2,118.2T220.6,124.3T219.1,130.4L218,133.5Z"/>
+    <path id="xiaobai-sNs" d="M221.2,128.9Q216.6,131.2 213.8,126.9M222.5,120.2Q218.4,123.5 214.8,119.7M222.8,112Q218.8,115.5 215,111.9M223.1,104Q219.1,107.5 215.2,103.9M223,95.8Q219.2,99.5 215.1,96.1M222.6,87.7Q218.9,91.6 214.6,88.3M221.7,79.5Q218.2,83.6 213.8,80.6M220.5,71.4Q217.1,75.7 212.5,72.9M218.7,63.3Q215.7,67.9 210.9,65.3M216.4,55.4Q213.7,60.1 208.7,57.9M213.6,47.6Q211.2,52.5 206,50.7M209.8,39.9Q208.1,45.2 202.7,44.1M204.5,32.8Q204,38.3 198.4,38.4M197.1,26.9Q198.6,32.3 193.4,34.3M187.1,24.9Q191.3,28.7 187.9,33.2"/>
+    <!-- snake head in LOCAL coords (origin = back of skull, pointing left); placed by a group transform -->
+    <path id="xiaobai-shead" d="M6,-7.5 C0,-8.6 -6,-10.2 -12,-10.6 C-17,-11 -21,-10.6 -24.6,-9.6 C-27,-9 -28.6,-8.2 -30.4,-7.2 C-34,-5.6 -37.6,-3.8 -39.6,-1.6 C-41,0 -40.8,2 -39.2,3 C-36,4.6 -31,5.2 -26,5.8 C-20,6.6 -14,8 -8,9.2 C-3,10.2 2,9.8 6,8 C9,4 9,-3.5 6,-7.5 Z"/>
+    <!-- head fill fades out toward the neck so the two translucent layers blend without a seam -->
+    <linearGradient id="xiaobai-sheadg" gradientUnits="userSpaceOnUse" x1="-41" y1="0" x2="8" y2="0">
+      <stop offset="0" stop-color="#5fffc0" stop-opacity=".62"/>
+      <stop offset=".7" stop-color="#5fffc0" stop-opacity=".5"/>
+      <stop offset="1" stop-color="#5fffc0" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="xiaobai-sheadgi" gradientUnits="userSpaceOnUse" x1="-41" y1="0" x2="8" y2="0">
+      <stop offset="0" stop-color="#effffa" stop-opacity=".85"/>
+      <stop offset=".68" stop-color="#dffff2" stop-opacity=".62"/>
+      <stop offset="1" stop-color="#dffff2" stop-opacity="0"/>
+    </linearGradient>
+    <!-- ===== figure silhouettes (reused by the rim-light clips) ===== -->
+    <path id="xiaobai-skirtshape" d="M103,158 C99,170 97,184 97,198 C96.4,230 92,262 89.6,290 C89.2,296 90.4,302 90.4,308 C90,330 87,354 80,374 C78,380 75,384 71,387 C90,389.5 112,389.5 132,388.5 C154,387.5 176,384 196,378 C204,375 211,371 217,365 C210,350 203,330 194,308 C182,280 168,250 157,224 C150,206 145,188 142,172 L140,158 Z"/>
+    <path id="xiaobai-torso" d="M106,104 C101,106 97,108 95,111 C97,117 99,123 100,129 C98,137 100,145 103,152 L104,160 L140,160 C141,150 142,138 145,126 C147,118 146,111 141,108 C136,105 130,103 125,103 Z"/>
+    <path id="xiaobai-nsleeve" d="M126,104 C136,102 146,106 151,114 C156,126 158,140 160,152 C172,162 188,170 204,176 C214,179 222,182 228,184 C222,190 217,193 211,196 C218,201 224,208 228,214 C214,218 198,219 184,217 C174,215 166,213 160,211 C156,209 152,206 149,202 C147,190 145,172 143,158 C142,144 141,132 138,122 C134,114 130,108 126,104 Z"/>
+    <path id="xiaobai-fsleeve" d="M103,106 C96,108 88,115 82,124 C79,129 77,133 76,137 C75,133 74,130 73,127 C69,126 63,127 59,130 C55,138 54,150 55,164 C56,180 62,194 74,203 C84,210 96,213 108,214 C104,206 101,196 100,184 L101,124 Z"/>
+    <path id="xiaobai-farm" d="M61.6,130 C60.8,124 60,119 59.4,115.4 L64.4,114.6 C65.8,119 67.6,124.4 69.4,129.6 Z M59.4,115.4 C58.2,113 57.6,110.4 57.8,107.6 C57.9,104 58.2,100 58.8,96.4 C59.1,95 60.7,94.8 61,96.2 L61.1,96.8 C61.5,95.8 62.8,95.9 63,97.2 C63.3,100.6 63.4,104 63.4,106.8 C64.8,107.2 65.8,108.8 65.5,110.6 C65.3,112.4 64.9,113.6 64.4,114.6 Z"/>
+    <path id="xiaobai-neck" d="M108.6,92 C109.2,98 109,103 107.6,108 L122.6,108 C121.2,102 120.6,96 120.8,89 Z"/>
+    <path id="xiaobai-face" d="M104,59.5 C101.6,62.5 100.2,66.5 100.2,70 C100.4,72 101.2,73 101,74.5 C100.6,77 99.2,79.5 98.6,81.5 C98.4,82.6 99.4,83.3 100.4,83.4 C100.2,84.6 100.1,85.4 100.4,86 C100.9,86.6 100.9,87 100.6,87.6 C100.5,88.6 100.9,89.4 101.6,90 C101.7,91.6 102,93 103.2,94 C105,95.6 108,95.9 111,94.6 C115,93 118.6,89.6 121.4,84.6 C123,79.6 123.8,74.6 123.6,70 C121,63 113,58.5 104,59.5 Z"/>
+    <path id="xiaobai-hairtop" d="M100.5,65 C99.8,57 105,49.5 114,47.5 C123,45.6 132,49 136.4,57 C139.4,64 139.4,73 136.6,82 C134.6,88 131,94 127,100 L122.4,90 C122,82 120.6,74 117.6,68 C114.6,64.6 110.6,62.4 106.6,62.2 C104.4,62.4 102.2,63.4 100.5,65 Z M115.6,45.6 C116,41.4 121,39.6 126,41.4 C132,41.6 138.6,45 139.6,50.6 C140.4,55.6 136,58.8 130.6,58 C124.6,57.4 118.6,53 115.6,45.6 Z"/>
+    <path id="xiaobai-bhair" d="M116,50 C126,47 136,52 140,62 C145,74 152,86 162,96 C172,105 184,110 197,113 C188,118 180,119 172,118 C182,126 192,134 201,140 C190,142 178,139 168,134 C176,145 184,156 190,168 C178,166 166,158 158,150 C158,162 158,172 156,184 C150,170 144,152 140,138 C136,124 131,110 126,100 C124,96 122,92 121,88 Z"/>
+    <!-- rim-light clips (each silhouette shifted away from the light) -->
+    <clipPath id="xiaobai-k-fsleeve-L"><use href="#xiaobai-fsleeve" transform="translate(1.6 0.8)"/></clipPath>
+    <clipPath id="xiaobai-k-farm-L"><use href="#xiaobai-farm" transform="translate(0.9 0.3)"/></clipPath>
+    <clipPath id="xiaobai-k-bhair-R"><use href="#xiaobai-bhair" transform="translate(-1.2 1.3)"/></clipPath>
+    <clipPath id="xiaobai-k-skirtshape-L"><use href="#xiaobai-skirtshape" transform="translate(1.7 0.8)"/></clipPath>
+    <clipPath id="xiaobai-k-skirtshape-R"><use href="#xiaobai-skirtshape" transform="translate(-1.5 0.8)"/></clipPath>
+    <clipPath id="xiaobai-k-neck-L"><use href="#xiaobai-neck" transform="translate(1 0)"/></clipPath>
+    <clipPath id="xiaobai-k-torso-L"><use href="#xiaobai-torso" transform="translate(1.5 0.9)"/></clipPath>
+    <clipPath id="xiaobai-k-torso-R"><use href="#xiaobai-torso" transform="translate(-1.2 0.9)"/></clipPath>
+    <clipPath id="xiaobai-k-nsleeve-R"><use href="#xiaobai-nsleeve" transform="translate(-1.4 1.1)"/></clipPath>
+    <clipPath id="xiaobai-k-face-L"><use href="#xiaobai-face" transform="translate(1.1 0.3)"/></clipPath>
+    <clipPath id="xiaobai-k-face-R"><use href="#xiaobai-face" transform="translate(-0.7 0.3)"/></clipPath>
+    <clipPath id="xiaobai-k-hairtop-L"><use href="#xiaobai-hairtop" transform="translate(0.9 1.2)"/></clipPath>
+  </defs>
+
+  <style>
+    .xiaobai-fx { transform-box: fill-box; }
+    .xiaobai-pulse { animation: xiaobai-pulse 3.6s ease-in-out infinite; }
+    .xiaobai-breathe { animation: xiaobai-breathe 6s ease-in-out infinite; }
+    .xiaobai-wave { animation: xiaobai-wave 3s ease-in-out infinite; }
+    .xiaobai-wA { animation-delay: -1.2s; } .xiaobai-wB { animation-delay: -.8s; }
+    .xiaobai-wC { animation-delay: -.4s; } .xiaobai-wN { animation-delay: 0s; }
+    .xiaobai-mistA { animation: xiaobai-mistA 6s ease-in-out infinite; transform-origin: 50% 50%; }
+    .xiaobai-mistB { animation: xiaobai-mistB 5s ease-in-out infinite; transform-origin: 50% 50%; }
+    .xiaobai-mote { animation: xiaobai-rise 5s linear infinite; transform-origin: 50% 50%; }
+    .xiaobai-m2 { animation-duration: 6s; animation-delay: -2s; }
+    .xiaobai-m3 { animation-duration: 4.5s; animation-delay: -3.4s; }
+    .xiaobai-m4 { animation-duration: 5.5s; animation-delay: -1s; }
+    .xiaobai-sway { animation: xiaobai-sway 4.4s ease-in-out infinite; transform-origin: 30% 0%; }
+    .xiaobai-bead { animation: xiaobai-sway 2.6s ease-in-out infinite; transform-origin: 50% 0%; }
+    .xiaobai-glint { animation: xiaobai-glint 3.2s ease-in-out infinite; transform-origin: 50% 50%; }
+    .xiaobai-orb { animation: xiaobai-orb 2.4s ease-in-out infinite; transform-origin: 50% 50%; }
+    .xiaobai-eye { animation: xiaobai-pulse 2.8s ease-in-out infinite; }
+    @keyframes xiaobai-pulse { 0%, 100% { opacity: .6; } 50% { opacity: .95; } }
+    @keyframes xiaobai-breathe { 0%, 100% { opacity: 1; } 50% { opacity: .72; } }
+    @keyframes xiaobai-wave { 0%, 100% { opacity: .7; } 50% { opacity: 1; } }
+    @keyframes xiaobai-mistA { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(5px); } }
+    @keyframes xiaobai-mistB { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(-5px); } }
+    @keyframes xiaobai-rise { 0% { transform: translateY(6px); opacity: 0; } 20% { opacity: .9; } 100% { transform: translateY(-22px); opacity: 0; } }
+    @keyframes xiaobai-sway { 0%, 100% { transform: rotate(-2deg); } 50% { transform: rotate(2deg); } }
+    @keyframes xiaobai-glint { 0%, 100% { transform: scale(.55); opacity: .5; } 45% { transform: scale(1.1); opacity: 1; } }
+    @keyframes xiaobai-orb { 0%, 100% { transform: scale(.88); opacity: .8; } 50% { transform: scale(1.08); opacity: 1; } }
+    @media (prefers-reduced-motion: reduce) {
+      .xiaobai-fx, .xiaobai-fx * { animation: none !important; }
+    }
+  </style>
+
+  <!-- ================= 1. backlight bloom behind head and shoulders ================= -->
+  <ellipse class="xiaobai-fx xiaobai-breathe" cx="124" cy="122" rx="96" ry="112" fill="url(#xiaobai-back)"/>
+
+  <!-- ================= 2. ground glow + contact shadow ================= -->
+  <ellipse cx="122" cy="386" rx="98" ry="8" fill="url(#xiaobai-groundg)"/>
+  <ellipse cx="128" cy="388.5" rx="60" ry="2.6" fill="#010403" opacity=".7"/>
+
+  <!-- ================= 3. spirit snake — passes BEHIND her (B: low back coil, N: neck + head) ================= -->
+  <g id="xiaobai-snake-back">
+    <g filter="url(#xiaobai-soft)" fill="#5fffc0" class="xiaobai-fx xiaobai-pulse">
+      <use href="#xiaobai-sB"/><use href="#xiaobai-sN"/><use href="#xiaobai-shead" transform="translate(191 28) rotate(-15)"/>
+    </g>
+    <g fill="#5fffc0" opacity=".42"><use href="#xiaobai-sB"/><use href="#xiaobai-sN"/></g>
+    <g fill="#e4fff5" opacity=".42"><use href="#xiaobai-sBi"/><use href="#xiaobai-sNi"/></g>
+    <use href="#xiaobai-sNs" fill="none" stroke="#f2fff9" stroke-width=".5" opacity=".5"/>
+    <g fill="#f2fff9" filter="url(#xiaobai-glow)" opacity=".8">
+      <use href="#xiaobai-sBr" class="xiaobai-fx xiaobai-wave xiaobai-wB"/>
+      <use href="#xiaobai-sNr" class="xiaobai-fx xiaobai-wave xiaobai-wN"/>
+    </g>
+    <!-- head (arched down toward her): translucent jade shell, pale core, lit brow plane, glowing slit eye -->
+    <g transform="translate(191 28) rotate(-15)">
+      <use href="#xiaobai-shead" fill="url(#xiaobai-sheadg)"/>
+      <use href="#xiaobai-shead" transform="translate(-16 .3) scale(.86 .76) translate(16 0)" fill="url(#xiaobai-sheadgi)"/>
+      <!-- lower jaw in soft jade shadow, mouth line, brow-ridge shade, crown scales, nostril -->
+      <path d="M-39.2,3 C-36,4.6 -31,5.2 -26,5.8 C-20,6.6 -14,8 -8,9.2 C-12,6.6 -20,5 -28,4.2 C-33,3.8 -37,3.4 -39.2,3 Z" fill="#2fbf8a" opacity=".45"/>
+      <path d="M-39.4,2.4 C-34,3.6 -26,4.2 -18,5.4 C-14,6 -11,6.4 -8.6,6.8" fill="none" stroke="#14684b" stroke-width=".6" stroke-linecap="round"/>
+      <path d="M-29.4,-6.4 C-26,-8.4 -21,-8.8 -16.6,-7" fill="none" stroke="#14684b" stroke-width=".9" stroke-linecap="round" opacity=".6"/>
+      <path d="M-14,-8.4 Q-11.6,-10 -9,-8.4 M-8.6,-8 Q-6,-9.6 -3.4,-7.8 M-12,-5 Q-9.4,-6.6 -6.8,-5" fill="none" stroke="#5fffc0" stroke-width=".45" opacity=".85"/>
+      <circle cx="-37.4" cy="-1.2" r=".5" fill="#0f4a37"/>
+    </g>
+    <!-- (filters sit outside the rotated group so their user-space region is not rotated away) -->
+    <g filter="url(#xiaobai-glow)">
+      <path transform="translate(191 28) rotate(-15)" d="M-38.8,-2.6 C-34.6,-5.6 -29.6,-8 -24.6,-9.4 C-18.6,-10.8 -10.6,-10.8 -2,-9" fill="none" stroke="#f2fff9" stroke-width="1.1" stroke-linecap="round"/>
+    </g>
+    <g filter="url(#xiaobai-glow)" class="xiaobai-fx xiaobai-eye">
+      <g transform="translate(191 28) rotate(-15)">
+        <path d="M-27.6,-3.8 C-26,-6.2 -22.4,-6.8 -20,-5.2 C-21.6,-3 -25,-2.6 -27.6,-3.8 Z" fill="#5fffc0"/>
+        <path d="M-23.8,-6.1 L-24,-3.2" stroke="#06261b" stroke-width=".8" stroke-linecap="round"/>
+      </g>
+    </g>
+  </g>
+
+  <!-- ================= 4. far arm (behind the body): hanging sleeve drape, bare forearm, sword-finger hand ================= -->
+  <g id="xiaobai-far-arm">
+    <!-- rim light on fsleeve: silhouette minus its shifted copy -->
+    <g><use href="#xiaobai-fsleeve" fill="#f2fff9"/><g clip-path="url(#xiaobai-k-fsleeve-L)"><use href="#xiaobai-fsleeve" fill="url(#xiaobai-farsleeve)"/></g></g>
+    <path d="M64,134 C62,156 66,180 80,198 M72,132 C72,156 78,182 94,204" fill="none" stroke="#040a08" stroke-width="1.6" opacity=".55"/>
+    <path d="M67,136 C66,158 70,182 85,200" fill="none" stroke="#5fffc0" stroke-width=".7" opacity=".3"/>
+    <path d="M59,130 C63,127 69,126 73,127 C70,129.5 64,130.5 60,132.5 Z" fill="#a9e3cf" opacity=".6"/>
+    <!-- rim light on farm: silhouette minus its shifted copy -->
+    <g><use href="#xiaobai-farm" fill="#f2fff9"/><g clip-path="url(#xiaobai-k-farm-L)"><use href="#xiaobai-farm" fill="url(#xiaobai-skin)"/></g></g>
+    <path d="M61.05,97 L61.15,106 M63.4,106.8 C62.6,108 61.4,108.4 60.2,108.2 M58,109.4 C59.4,110.2 61,110.2 62.2,109.2" fill="none" stroke="#0b0d0c" stroke-width=".4" opacity=".8"/>
+  </g>
+
+  <!-- ================= 5. long black hair streaming right (behind body) ================= -->
+  <g id="xiaobai-back-hair">
+    <!-- rim light on bhair: silhouette minus its shifted copy -->
+    <g><use href="#xiaobai-bhair" fill="#5fffc0"/><g clip-path="url(#xiaobai-k-bhair-R)"><use href="#xiaobai-bhair" fill="url(#xiaobai-hair)"/></g></g>
+    <path d="M138,64 C146,80 160,96 186,110 M140,82 C150,102 168,120 194,134 M142,102 C152,122 168,140 184,160 M140,118 C146,136 152,152 156,176" fill="none" stroke="#5fffc0" stroke-width=".6" opacity=".3"/>
+  </g>
+
+  <!-- ================= 6. skirt: inner layer, folds, backlit gauze overskirt, slipper ================= -->
+  <g id="xiaobai-skirt-group">
+    <!-- rim light on skirtshape: silhouette minus its shifted copy -->
+    <g><use href="#xiaobai-skirtshape" fill="#5fffc0"/><g clip-path="url(#xiaobai-k-skirtshape-R)"><use href="#xiaobai-skirtshape" fill="#f2fff9"/><g clip-path="url(#xiaobai-k-skirtshape-L)"><use href="#xiaobai-skirtshape" fill="url(#xiaobai-skirt)"/></g></g></g>
+    <use href="#xiaobai-skirtshape" fill="url(#xiaobai-vfade)"/>
+    <!-- folds: dark troughs + faint jade ridges, all sweeping right with the wind -->
+    <path d="M112,172 C114,220 112,290 108,386 M130,176 C140,230 152,300 160,384 M104,215 C101,260 97,320 92,380 M146,196 C166,250 184,310 198,374" fill="none" stroke="#030807" stroke-width="2.4" stroke-linecap="round" opacity=".6"/>
+    <path d="M103,206 C102,240 99,266 97,288 C96.6,300 97.6,306 97.2,314 C96.6,336 93,356 89,378" fill="none" stroke="#c9f5e4" stroke-width="2.2" stroke-linecap="round" opacity=".16"/>
+    <path d="M115,176 C118,224 116,292 113,386 M133,182 C144,236 157,304 166,383 M150,206 C170,258 188,318 204,371" fill="none" stroke="#7fffd0" stroke-width="1" stroke-linecap="round" opacity=".22"/>
+    <!-- pale under-skirt below the outer robe's hem, lit from below by the ground glow -->
+    <path d="M81,370 C88,366 96,372 104,368 C112,364 120,371 130,367 C140,363 150,370 160,366 C170,362 182,366 192,360 C200,356 206,358 212,354 C214,358 215,362 217,365 C211,371 204,375 196,378 C176,384 154,387.5 132,388.5 C112,389.5 90,389.5 71,387 C75,384 78,378 81,370 Z" fill="url(#xiaobai-under)"/>
+    <path d="M81,370 C88,366 96,372 104,368 C112,364 120,371 130,367 C140,363 150,370 160,366 C170,362 182,366 192,360 C200,356 206,358 212,354" fill="none" stroke="#5fffc0" stroke-width=".9" stroke-linecap="round" opacity=".75"/>
+    <path d="M100,372 C99,378 98,383 97,388 M124,370 C124,376 125,382 126,388 M150,369 C152,375 154,380 156,386 M178,366 C181,371 184,376 188,380" fill="none" stroke="#0a1613" stroke-width="1.2" opacity=".5"/>
+    <!-- backlit translucent gauze overskirt billowing to the right -->
+    <path d="M132,160 C152,190 172,230 192,268 C206,296 218,324 226,346 C221,349 218,354 219,360 C213,364 208,370 203,376 C190,383 172,386 152,388 C160,350 156,300 146,260 C140,232 136,200 132,160 Z" fill="url(#xiaobai-gauze)"/>
+    <path d="M150,214 C168,250 186,292 204,330 M156,250 C170,290 182,330 190,372" fill="none" stroke="#d8fff0" stroke-width=".7" opacity=".3"/>
+    <!-- far foot: pointed slipper peeking from the hem -->
+    <path d="M79,388 C82,383.5 90,382.5 97,384 C100,385 100,388 97,389.2 C90,390.2 84,390.2 79,388 Z" fill="#0b1513"/>
+  </g>
+
+  <!-- jade light spilled on the dress by the coil in front of her hips -->
+  <ellipse cx="114" cy="184" rx="30" ry="12" fill="url(#xiaobai-groundg)" opacity=".55"/>
+
+  <!-- ================= 7. torso: robe, cross collar, jade waist sash, short sash tails ================= -->
+  <g id="xiaobai-torso-group">
+    <!-- rim light on neck: silhouette minus its shifted copy -->
+    <g><use href="#xiaobai-neck" fill="#f2fff9"/><g clip-path="url(#xiaobai-k-neck-L)"><use href="#xiaobai-neck" fill="url(#xiaobai-skin)"/></g></g>
+    <path d="M108.8,93.8 C112,95.6 117,93.6 120.8,90 L120.8,97 C116,100 111.6,99.6 108.9,98 Z" fill="#0b0f0e" opacity=".4"/>
+    <path d="M110,100 C113,103 116,105 119,106" fill="none" stroke="#0b0f0e" stroke-width=".7" opacity=".5"/>
+    <!-- rim light on torso: silhouette minus its shifted copy -->
+    <g><use href="#xiaobai-torso" fill="#5fffc0"/><g clip-path="url(#xiaobai-k-torso-R)"><use href="#xiaobai-torso" fill="#f2fff9"/><g clip-path="url(#xiaobai-k-torso-L)"><use href="#xiaobai-torso" fill="url(#xiaobai-cloth)"/></g></g></g>
+    <path d="M107,104.5 L124.5,103.5 L114,122 Z" fill="#6f9a8b"/>
+    <path d="M108,104 C110,110 112,116 114,121.5" fill="none" stroke="#a8d8c6" stroke-width="2.2" opacity=".65"/>
+    <path d="M123.5,103.5 C118,114 111,126 102.5,138" fill="none" stroke="#c4eddd" stroke-width="3" opacity=".85"/>
+    <path d="M125.2,105 C119.6,115.6 112.6,127.6 104.4,139.6" fill="none" stroke="#040a08" stroke-width="1" opacity=".7"/>
+    <path d="M102,139 C109,144 120,144 131,139" fill="none" stroke="#040a08" stroke-width="2" opacity=".45"/>
+    <path d="M103,147 C115,149 130,148 141,145 L141.5,161 C130,163 115,163 103.5,161.5 Z" fill="url(#xiaobai-sash)"/>
+    <path d="M103.5,154 C115,156 130,155.5 141,153" fill="none" stroke="#f2fff9" stroke-width=".8" opacity=".55"/>
+  </g>
+  <g class="xiaobai-fx xiaobai-sway" fill="url(#xiaobai-sash)" stroke="#5fffc0" stroke-width=".5">
+    <path d="M111.5,158 C112,176 115,192 120,204 C123,211 127,216 133,219 L131,221.5 C125,219 120,213 117,206 C112,194 109,178 109,159 Z"/>
+    <path d="M115,158 C117,174 121,188 127,198 C131,204 136,208 142,210 L140.6,212.6 C134,211 128,206 124,200 C118,190 114,176 113.4,159 Z"/>
+  </g>
+  <path d="M110,153 C107,150 107,157 110,158 C112,159 114,158 115,156 C117,158 120,159 121,156 C122,152 118,151 115,154 C113,152 111,152 110,153 Z" fill="#1f6b51" stroke="#5fffc0" stroke-width=".6"/>
+
+  <!-- ================= 8. near arm: wide sleeve flaring right (backlit gauze tips), relaxed hand ================= -->
+  <g id="xiaobai-near-arm">
+    <!-- rim light on nsleeve: silhouette minus its shifted copy -->
+    <g><use href="#xiaobai-nsleeve" fill="#5fffc0"/><g clip-path="url(#xiaobai-k-nsleeve-R)"><use href="#xiaobai-nsleeve" fill="url(#xiaobai-sleeve)"/></g></g>
+    <path d="M152,150 C170,168 196,182 222,188 M150,180 C166,196 180,206 200,214 M146,124 C150,136 152,146 152,156" fill="none" stroke="#030807" stroke-width="1.8" opacity=".55"/>
+    <path d="M154,166 C172,180 194,196 222,210" fill="none" stroke="#d8fff0" stroke-width=".8" opacity=".35"/>
+    <path d="M150.5,203 C150,209 150.3,215 151.3,220.5 C151.8,223.5 153.6,224.6 154.6,222.4 C155,220.5 155.2,218.6 155.6,217.2 C156.6,219.6 158.3,220.4 158.9,218.6 C159.6,214.6 159.3,209.4 157.8,205 Z" fill="url(#xiaobai-skin)" stroke="#5fffc0" stroke-width=".5" stroke-opacity=".6"/>
+  </g>
+
+  <!-- ================= 9. neck, face, hair, knot, jade hairpin ================= -->
+  <g id="xiaobai-head">
+    <!-- rim light on face: silhouette minus its shifted copy -->
+    <g><use href="#xiaobai-face" fill="#5fffc0"/><g clip-path="url(#xiaobai-k-face-R)"><use href="#xiaobai-face" fill="#f2fff9"/><g clip-path="url(#xiaobai-k-face-L)"><use href="#xiaobai-face" fill="url(#xiaobai-skin)"/></g></g></g>
+    <!-- features: calm almond eyes with faint jade glints, fine brows, muted lips -->
+    <path d="M108.2,70.6 C110.8,69.2 114,68.9 117.2,69.9 M101,70.6 C102.3,69.7 103.9,69.4 105.2,69.7" fill="none" stroke="#070b0a" stroke-width=".85" stroke-linecap="round"/>
+    <path d="M108.8,74.6 C110.7,73.1 113.5,72.8 116,73.8 L117.4,73.3 M101.7,74.5 C102.6,73.7 104.1,73.5 105.3,74" fill="none" stroke="#040706" stroke-width=".95" stroke-linecap="round"/>
+    <path d="M109.8,75.3 C111.7,75.9 113.8,75.8 115.3,75" fill="none" stroke="#040706" stroke-width=".45" opacity=".6"/>
+    <path d="M108,72.2 C111,71 115,71.2 117.8,72.6 C115,72.8 111,73.2 108.4,74.2 Z M114,83.4 C116.4,84.8 119,84.8 121.2,83 C119.8,86.4 116.8,88.2 114.4,87.8 Z" fill="#0d1110" opacity=".16"/>
+    <path d="M101.8,77.4 C103.8,78 105.6,79.8 106.2,82.4 C104.4,81.8 102.8,80.4 101.8,77.4 Z" fill="#d6cfc9" opacity=".22"/>
+    <path d="M104.6,75.5 C104,78.5 103,81 101.6,82.8" fill="none" stroke="#141716" stroke-width=".5" opacity=".28"/>
+    <path d="M100.8,85.9 C102,85.6 103.4,85.7 104.6,86.2 C103.4,87.4 102,87.8 101,87.5 Z" fill="#6a3039" opacity=".75"/>
+    <path d="M100.8,86.7 C102.2,86.9 103.4,86.9 104.6,86.6" fill="none" stroke="#1a0b0e" stroke-width=".5"/>
+    <g filter="url(#xiaobai-glow)" fill="#5fffc0">
+      <circle cx="112.6" cy="74.5" r=".55"/>
+      <circle cx="103.8" cy="74.5" r=".42"/>
+    </g>
+    <!-- hair over the skull + updo knot -->
+    <!-- rim light on hairtop: silhouette minus its shifted copy -->
+    <g><use href="#xiaobai-hairtop" fill="#5fffc0"/><g clip-path="url(#xiaobai-k-hairtop-L)"><use href="#xiaobai-hairtop" fill="url(#xiaobai-hair)"/></g></g>
+    <path d="M106.6,62.2 C111,60 116,62.6 118.6,67 M106.6,62.2 C108,58 112,54 118,52 M110,52 C120,49 130,52 135,60 M120,44 C126,42 133,44 137,49" fill="none" stroke="#5fffc0" stroke-width=".5" opacity=".35"/>
+    <path d="M118,66 C121,74 122,82 126,90 C130,96 136,100 142,101" fill="none" stroke="#030605" stroke-width="1.4" stroke-linecap="round"/>
+    <!-- jade hairpin with dangling bead -->
+    <path d="M124,57 L134,37.6" stroke="#1f8f68" stroke-width="1.7" stroke-linecap="round"/>
+    <path d="M124.4,56 L133.6,37.6" stroke="#a8ffe0" stroke-width=".55" stroke-linecap="round"/>
+    <g class="xiaobai-fx xiaobai-bead">
+      <path d="M134.8,38.2 L136,47.6" stroke="#f2fff9" stroke-width=".4" opacity=".7"/>
+      <circle cx="136.1" cy="48.8" r="1.1" fill="#5fffc0"/>
+    </g>
+    <g filter="url(#xiaobai-glow)">
+      <circle cx="134.6" cy="36.4" r="2.3" fill="#5fffc0"/>
+      <circle cx="134.6" cy="36.4" r=".9" fill="#f2fff9"/>
+    </g>
+  </g>
+
+  <!-- ================= 10. BLOOM of the rim light (soft halo along the lit edges) ================= -->
+  <g fill="none" stroke-linecap="round" filter="url(#xiaobai-soft)" opacity=".55">
+    <path d="M100.6,66 C100,72 98.6,80 100.4,86 C101,90 102,93 104,95 M107.6,95 C108.3,99 108.2,103 106.8,107.5" stroke="#f2fff9" stroke-width="1.6"/>
+    <path d="M100.6,64 C100,57 105,49.5 114,47.5 C120,44 130,40 139,49 M139.5,55 C142,62 146,75 153,86 C162,97 178,108 197,113" stroke="#5fffc0" stroke-width="2.2"/>
+    <path d="M103,106 C96,108 88,115 82,124 C79,129 77,133 76,137 M59,130 C55,138 54,150 55,164 C56,180 62,194 74,203 C84,210 96,213 108,214" stroke="#d9fff0" stroke-width="2.2"/>
+    <path d="M126,104 C136,102 146,106 151,114 C156,126 158,140 160,152 C172,162 188,170 204,176 C214,179 222,182 228,184" stroke="#5fffc0" stroke-width="2.4"/>
+    <path d="M103,160 C99,170 97,184 97,198 C96.4,230 92,262 89.6,290 C89.2,296 90.4,302 90.4,308 C90,330 87,354 80,374 C78,380 75,384 71,387" stroke="#d9fff0" stroke-width="2.4"/>
+    <path d="M132,160 C152,190 172,230 192,268 C206,296 218,324 226,346" stroke="#5fffc0" stroke-width="2.4"/>
+  </g>
+  <!-- crisp edges of the translucent gauze, hem and slipper -->
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round" filter="url(#xiaobai-glow)">
+    <path d="M132,160 C152,190 172,230 192,268 C206,296 218,324 226,346 C221,349 218,354 219,360 C213,364 208,370 203,376" stroke="#5fffc0" stroke-width="1.1"/>
+    <path d="M71,387 C90,389.5 112,389.5 132,388.5 C154,387.5 176,384 196,378 C204,375 211,371 217,365" stroke="#5fffc0" stroke-width=".8" opacity=".55"/>
+    <path d="M80,387.5 C84,384 90,383 96,384" stroke="#f2fff9" stroke-width=".8"/>
+    <path d="M103,147 C115,149 130,148 141,145" stroke="#5fffc0" stroke-width=".8" opacity=".85"/>
+  </g>
+
+  <!-- ================= 11. spirit snake — passes IN FRONT (A: tail coil at the hem, C: coil around her hips) ================= -->
+  <g id="xiaobai-snake-front">
+    <g filter="url(#xiaobai-soft)" fill="#5fffc0" class="xiaobai-fx xiaobai-pulse">
+      <use href="#xiaobai-sA"/><use href="#xiaobai-sC"/>
+    </g>
+    <g fill="#5fffc0" opacity=".42"><use href="#xiaobai-sA"/><use href="#xiaobai-sC"/></g>
+    <g fill="#e4fff5" opacity=".42"><use href="#xiaobai-sAi"/><use href="#xiaobai-sCi"/></g>
+    <g fill="none" stroke="#f2fff9" stroke-width=".5" opacity=".5"><use href="#xiaobai-sAs"/><use href="#xiaobai-sCs"/></g>
+    <g fill="#f2fff9" filter="url(#xiaobai-glow)" opacity=".8">
+      <use href="#xiaobai-sAr" class="xiaobai-fx xiaobai-wave xiaobai-wA"/>
+      <use href="#xiaobai-sCr" class="xiaobai-fx xiaobai-wave xiaobai-wC"/>
+    </g>
+  </g>
+
+  <!-- ================= 12. mist at her feet (drifting) ================= -->
+  <g class="xiaobai-fx xiaobai-mistA">
+    <ellipse cx="64" cy="381" rx="46" ry="7.5" fill="url(#xiaobai-mistg)" opacity="1"/>
+    <ellipse cx="112" cy="386" rx="40" ry="5" fill="url(#xiaobai-mistg)" opacity=".7"/>
+    <ellipse cx="38" cy="374" rx="24" ry="6" fill="url(#xiaobai-mistg)" opacity=".7"/>
+    <ellipse cx="88" cy="377" rx="30" ry="8" fill="url(#xiaobai-mistg)" opacity=".6"/>
+    <ellipse cx="22" cy="383" rx="14" ry="4" fill="url(#xiaobai-mistg)" opacity=".8"/>
+    <path d="M28,377 C40,371 56,371 68,375 C72,377 70,380 66,379" fill="none" stroke="#e6fff4" stroke-width=".9" stroke-linecap="round" opacity=".3" filter="url(#xiaobai-glow)"/>
+  </g>
+  <g class="xiaobai-fx xiaobai-mistB">
+    <ellipse cx="170" cy="383" rx="52" ry="7" fill="url(#xiaobai-mistg)" opacity="1"/>
+    <ellipse cx="206" cy="375" rx="22" ry="6" fill="url(#xiaobai-mistg)" opacity=".7"/>
+    <ellipse cx="140" cy="380" rx="34" ry="7" fill="url(#xiaobai-mistg)" opacity=".6"/>
+    <ellipse cx="222" cy="384" rx="11" ry="4" fill="url(#xiaobai-mistg)" opacity=".8"/>
+    <path d="M150,381 C166,375 186,375 204,379 C208,381 206,384 202,383" fill="none" stroke="#e6fff4" stroke-width=".9" stroke-linecap="round" opacity=".3" filter="url(#xiaobai-glow)"/>
+  </g>
+
+  <!-- ================= 13. sparks: finger orb, hairpin glint, rising jade motes ================= -->
+  <g class="xiaobai-fx xiaobai-orb">
+    <circle cx="61" cy="90" r="5.5" fill="#5fffc0" opacity=".5" filter="url(#xiaobai-soft)"/>
+    <circle cx="61" cy="90" r="1.8" fill="#f2fff9" filter="url(#xiaobai-glow)"/>
+  </g>
+  <path class="xiaobai-fx xiaobai-glint" d="M134.6,30.6 L135.5,35.5 L140.4,36.4 L135.5,37.3 L134.6,42.2 L133.7,37.3 L128.8,36.4 L133.7,35.5 Z" fill="#f2fff9" opacity=".9"/>
+  <g fill="#c8ffe8" filter="url(#xiaobai-glow)">
+    <circle class="xiaobai-fx xiaobai-mote" cx="38" cy="150" r="1.1" opacity=".8"/>
+    <circle class="xiaobai-fx xiaobai-mote xiaobai-m2" cx="206" cy="238" r="1" opacity=".7"/>
+    <circle class="xiaobai-fx xiaobai-mote xiaobai-m3" cx="50" cy="330" r="1.3" opacity=".8"/>
+    <circle class="xiaobai-fx xiaobai-mote xiaobai-m4" cx="186" cy="300" r=".9" opacity=".7"/>
+    <circle class="xiaobai-fx xiaobai-mote xiaobai-m2" cx="30" cy="272" r="1" opacity=".6"/>
+    <circle class="xiaobai-fx xiaobai-mote xiaobai-m3" cx="150" cy="70" r=".9" opacity=".7"/>
+    <circle class="xiaobai-fx xiaobai-mote xiaobai-m4" cx="80" cy="66" r="1.1" opacity=".7"/>
+    <circle class="xiaobai-fx xiaobai-mote" cx="92" cy="250" r=".8" opacity=".6"/>
+    <circle class="xiaobai-fx xiaobai-mote xiaobai-m3" cx="222" cy="260" r="1.2" opacity=".7"/>
+    <circle class="xiaobai-fx xiaobai-mote xiaobai-m2" cx="20" cy="190" r=".9" opacity=".6"/>
+    <circle class="xiaobai-fx xiaobai-mote xiaobai-m4" cx="160" cy="352" r="1" opacity=".7"/>
+  </g>
+</svg>

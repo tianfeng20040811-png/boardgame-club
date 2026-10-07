@@ -1,0 +1,17 @@
+{
+  "name": "kaizhuo-boardgame-club",
+  "version": "2.0.0",
+  "private": true,
+  "description": "开桌 · 桌游社：每周五 18:30 R312 桌游活动主页、游戏库与预约报名系统",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test test/*.test.js"
+  },
+  "engines": {
+    "node": ">=18.17"
+  },
+  "dependencies": {
+    "pg": "^8.13.1"
+  }
+}

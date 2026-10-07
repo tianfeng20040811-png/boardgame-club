@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>报名上桌 · 开桌桌游社</title>
+  <meta name="description" content="桌游社每周五 18:30 · R312 活动报名：选择想玩的桌游，填写称呼和熟悉程度，系统自动分桌。">
+  <meta name="theme-color" content="#120909">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="stylesheet" href="/assets/base.css?v=__V__">
+  <link rel="stylesheet" href="/assets/signup.css?v=__V__">
+  <script src="/assets/core.js?v=__V__" defer></script>
+  <script src="/assets/fx.js?v=__V__" defer></script>
+  <script src="/assets/signup.js?v=__V__" defer></script>
+</head>
+<body class="theme-guochao page-signup">
+  <!-- 背景：天空、太阳、祥云、远山 -->
+  <div class="gc-sky" aria-hidden="true">
+    <div class="gc-rays"></div>
+    <div class="gc-sun"></div>
+    <svg class="gc-cloud c1" viewBox="0 0 220 90"><path d="M20 70c-14 0-14-22 2-22 0-20 26-28 38-14 6-22 44-24 50 0 10-12 34-8 34 10 18-2 26 26 6 26z" fill="#fffaf1" stroke="#e8a35a" stroke-width="3"/><path d="M58 52c8-8 22-6 24 4M118 48c6-6 16-4 18 4" fill="none" stroke="#e8a35a" stroke-width="3" stroke-linecap="round"/></svg>
+    <svg class="gc-cloud c2" viewBox="0 0 220 90"><path d="M20 70c-14 0-14-22 2-22 0-20 26-28 38-14 6-22 44-24 50 0 10-12 34-8 34 10 18-2 26 26 6 26z" fill="#fffaf1" stroke="#e8a35a" stroke-width="3"/><path d="M58 52c8-8 22-6 24 4M118 48c6-6 16-4 18 4" fill="none" stroke="#e8a35a" stroke-width="3" stroke-linecap="round"/></svg>
+    <svg class="gc-cloud c3" viewBox="0 0 220 90"><path d="M20 70c-14 0-14-22 2-22 0-20 26-28 38-14 6-22 44-24 50 0 10-12 34-8 34 10 18-2 26 26 6 26z" fill="#fffaf1" stroke="#e8a35a" stroke-width="3"/></svg>
+    <svg class="gc-mountains" viewBox="0 0 1440 260" preserveAspectRatio="none"><path d="M0 200 L120 120 L210 170 L330 70 L460 180 L560 110 L700 190 L820 90 L940 170 L1060 100 L1200 180 L1320 120 L1440 170 V260 H0z" fill="#f3c08c" opacity=".55"/><path d="M0 230 L160 160 L280 210 L420 140 L540 220 L680 150 L800 220 L960 150 L1100 225 L1240 165 L1440 220 V260 H0z" fill="#e89a6a" opacity=".45"/></svg>
+  </div>
+  <canvas class="embers" id="embers" aria-hidden="true"></canvas>
+
+  <header class="topbar gc-topbar">
+    <div class="wrap topbar-in">
+      <a class="brand" href="/" aria-label="开桌 · 桌游社 首页">
+        <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M16 2l12 7v14l-12 7-12-7V9z" fill="#e8432e" stroke="#2a1a12" stroke-width="2" stroke-linejoin="round"/><circle cx="11.5" cy="12" r="2" fill="#fff6e9"/><circle cx="20.5" cy="20" r="2" fill="#fff6e9"/><circle cx="16" cy="16" r="2" fill="#f2b134"/></svg>
+        <span><span class="brand-name">开桌 · 桌游社</span><small>BOARD GAME CLUB</small></span>
+      </a>
+      <nav class="nav" aria-label="主导航">
+        <a href="/" data-nav="/">首页</a>
+        <a href="/games" data-nav="/games">游戏库</a>
+        <a class="nav-cta" href="/signup" data-nav="/signup">报名</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main" class="gc-main">
+    <div class="gc-layout">
+      <aside class="stage stage-left" aria-hidden="true">
+        <div class="bubble" id="bubble">周五 18:30，R312 集合</div>
+        <figure class="hero-char back" style="--x:2%;--b:36%;--w:44%;--d:-1.2s"><img src="/assets/chars/yangjian.svg?v=__V__" alt="" width="240" height="400" decoding="async"><figcaption>杨戬</figcaption></figure>
+        <figure class="hero-char back" style="--x:50%;--b:40%;--w:42%;--d:-3s"><img src="/assets/chars/gainie.svg?v=__V__" alt="" width="240" height="400" decoding="async"><figcaption>盖聂</figcaption></figure>
+        <figure class="hero-char front" style="--x:0%;--b:0%;--w:54%;--d:0s"><img src="/assets/chars/nezha.svg?v=__V__" alt="" width="240" height="400" decoding="async"><figcaption>哪吒</figcaption></figure>
+        <figure class="hero-char front" style="--x:44%;--b:3%;--w:52%;--d:-2.2s"><img src="/assets/chars/aobing.svg?v=__V__" alt="" width="240" height="400" decoding="async"><figcaption>敖丙</figcaption></figure>
+      </aside>
+
+      <section class="gc-center">
+        <div class="gc-title">
+          <span class="seal" aria-hidden="true">报名</span>
+          <div>
+            <h1>上桌报名</h1>
+            <p class="gc-sub">每周五 <b>18:30</b> · <b id="locLabel">R312</b> · 开局前都能报</p>
+          </div>
+        </div>
+
+        <div class="mobile-stage" aria-hidden="true">
+          <img src="/assets/chars/yangjian.svg?v=__V__" alt="" width="240" height="400" decoding="async">
+          <img src="/assets/chars/nezha.svg?v=__V__" alt="" width="240" height="400" decoding="async">
+          <img src="/assets/chars/xiaobai.svg?v=__V__" alt="" width="240" height="400" decoding="async">
+          <img src="/assets/chars/wukong.svg?v=__V__" alt="" width="240" height="400" decoding="async">
+          <img src="/assets/chars/luoxiaohei.svg?v=__V__" alt="" width="240" height="400" decoding="async">
+          <img src="/assets/chars/aobing.svg?v=__V__" alt="" width="240" height="400" decoding="async">
+          <img src="/assets/chars/gainie.svg?v=__V__" alt="" width="240" height="400" decoding="async">
+          <img src="/assets/chars/xiaoyan.svg?v=__V__" alt="" width="240" height="400" decoding="async">
+          <div class="bubble bubble-m" id="bubbleM">周五 18:30，R312 集合</div>
+        </div>
+
+        <div class="sessions" id="sessions" role="radiogroup" aria-label="选择场次">
+          <div class="skeleton" style="height:64px"></div>
+        </div>
+        <div class="notice" id="sessionNotice" hidden></div>
+
+        <form id="form" class="paper-card" method="post" action="/signup" novalidate autocomplete="on">
+          <div class="form-head" id="formHead" hidden>
+            <span>正在修改报名</span><button type="button" class="link-btn" id="cancelEdit">放弃修改</button>
+          </div>
+          <fieldset class="step" id="stepGame">
+            <legend><span class="step-no">一</span>挑一款想玩的游戏 <em>*</em></legend>
+            <p class="hint">满员也可以选：有第二志愿会自动转过去，否则排候补。点「▶ 教学」先看视频。</p>
+            <div class="gopts" id="gameOptions" role="radiogroup" aria-label="第一志愿游戏" aria-required="true">
+              <div class="skeleton" style="height:96px"></div><div class="skeleton" style="height:96px"></div>
+            </div>
+            <p class="err" id="errGame" role="alert"></p>
+          </fieldset>
+
+          <fieldset class="step" id="stepInfo">
+            <legend><span class="step-no">二</span>填写信息</legend>
+            <div class="field">
+              <label class="label" for="name">你的称呼 <em>*</em><small>会显示在公开名单上</small></label>
+              <input class="input" id="name" name="name" maxlength="20" autocomplete="nickname" placeholder="如：小林 / 林同学" required>
+              <p class="err" id="errName" role="alert"></p>
+            </div>
+
+            <div class="field" role="radiogroup" aria-labelledby="levelLabel">
+              <span class="label" id="levelLabel">你玩过<span id="levelGame">这款游戏</span>吗？ <em>*</em></span>
+              <div class="seg" id="levelSeg">
+                <label><input type="radio" name="level" value="0"><span><i aria-hidden="true">🌱</i>没玩过</span></label>
+                <label><input type="radio" name="level" value="1"><span><i aria-hidden="true">🎲</i>玩过几次</span></label>
+                <label><input type="radio" name="level" value="2"><span><i aria-hidden="true">🎓</i>熟练能教</span></label>
+              </div>
+              <p class="err" id="errLevel" role="alert"></p>
+            </div>
+
+            <label class="toggle" id="teachRow" hidden>
+              <input type="checkbox" name="teach" id="teach">
+              <span class="toggle-ui" aria-hidden="true"></span>
+              <span><b>我愿意给新手讲规则</b><small>系统会优先把你分到有新手的桌</small></span>
+            </label>
+
+            <div class="field">
+              <label class="label" for="altGameId">第二志愿 <small>选填</small></label>
+              <select class="select" id="altGameId" name="altGameId"><option value="">不需要，只玩第一志愿</option></select>
+              <p class="hint">第一志愿满员，或开局时凑不齐人，就自动帮你转到这款。</p>
+            </div>
+
+            <div class="field">
+              <label class="label" for="note">备注 <small>选填，仅组织者可见</small></label>
+              <textarea class="textarea" id="note" name="note" maxlength="120" rows="2" placeholder="如：会晚到 20 分钟 / 想和朋友小王同桌"></textarea>
+            </div>
+            <div class="hp" aria-hidden="true"><label>网站<input type="text" name="website" tabindex="-1" autocomplete="off"></label></div>
+          </fieldset>
+
+          <div class="submit-bar">
+            <p class="summary" id="summary">先选一款游戏吧</p>
+            <button class="btn btn-red btn-lg" id="submitBtn" type="submit">确认报名</button>
+          </div>
+        </form>
+
+        <section class="paper-card success" id="success" hidden tabindex="-1" aria-live="polite"></section>
+
+        <section class="paper-card" id="mine" hidden>
+          <h2 class="card-h"><span class="seal seal-sm" aria-hidden="true">我</span>我的报名 <small>只保存在这台设备上</small></h2>
+          <div id="mineList"></div>
+        </section>
+
+        <section class="paper-card" id="roster">
+          <details id="rosterDetails">
+            <summary class="card-h"><span class="seal seal-sm" aria-hidden="true">名</span><span id="rosterTitle">本场名单与分桌</span><span class="sum-arrow" aria-hidden="true">展开</span></summary>
+            <div id="rosterBody"></div>
+          </details>
+        </section>
+      </section>
+
+      <aside class="stage stage-right" aria-hidden="true">
+        <figure class="hero-char back" style="--x:2%;--b:38%;--w:44%;--d:-0.8s"><img src="/assets/chars/xiaobai.svg?v=__V__" alt="" width="240" height="400" decoding="async"><figcaption>小白</figcaption></figure>
+        <figure class="hero-char back" style="--x:50%;--b:36%;--w:42%;--d:-2.6s"><img src="/assets/chars/luoxiaohei.svg?v=__V__" alt="" width="240" height="400" decoding="async"><figcaption>罗小黑</figcaption></figure>
+        <figure class="hero-char front" style="--x:0%;--b:0%;--w:56%;--d:-1.6s"><img src="/assets/chars/wukong.svg?v=__V__" alt="" width="240" height="400" decoding="async"><figcaption>大圣</figcaption></figure>
+        <figure class="hero-char front" style="--x:46%;--b:3%;--w:52%;--d:-3.4s"><img src="/assets/chars/xiaoyan.svg?v=__V__" alt="" width="240" height="400" decoding="async"><figcaption>萧炎</figcaption></figure>
+      </aside>
+    </div>
+  </main>
+
+  <footer class="footer gc-footer">
+    <div class="wrap footer-in">
+      <span>© 2026 开桌 · 桌游社 · 每周五 18:30 · R312</span>
+      <span>报名页角色均为原创致敬绘制（非官方素材），仅供社团活动使用 · <a href="/admin">管理</a></span>
+    </div>
+  </footer>
+</body>
+</html>
