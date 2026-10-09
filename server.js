@@ -943,6 +943,8 @@ function baseHeaders(res) {
   res.setHeader("X-Frame-Options", "SAMEORIGIN");
   res.setHeader("Content-Security-Policy", CSP);
   res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+  // 社团内部使用：页面和图片（含动画海报素材）都不让搜索引擎收录
+  res.setHeader("X-Robots-Tag", "noindex, nofollow, noimageindex");
 }
 
 function serveStatic(req, res, pathname, query) {
