@@ -158,3 +158,84 @@ test("旧版网站备份导入：按名称对应游戏、保留顺序、id 唯�
   assert.deepEqual(v.alloc.rounds[0].games.splendor.tables[0].players.map(x => x.name), ["n1", "n2", "n3", "n4"]);
   assert.throws(() => L.migrateLegacy({ games: {}, events: [] }, s), e => e.status === 400);
 });
+
+// ---------- 讲规名单 ----------
+const tid = n => `t${String(n).padStart(12, "0")}`;
+const teacher = (n, gameId, name, extra = {}) => ({ id: tid(n), gameId, name, createdAt: t(n), tokenHash: "", by: "self", ...extra });
+
+test("讲规名单：同一游戏同名去重（含零宽字符）、未知游戏和坏 id 丢弃", () => {
+  const s = base();
+  const list = L.normalizeTeachers([teacher(1, "avalon", "小林"), teacher(2, "avalon", "小​林"), teacher(3, "nope", "阿杰"), { ...teacher(4, "avalon", "阿杰"), id: "bad" }, teacher(5, "splendor", "小林")], ids(s));
+  assert.deepEqual(list.map(x => `${x.gameId}:${x.name}`), ["avalon:小林", "splendor:小林"]);
+  assert.deepEqual(JSON.parse(JSON.stringify(L.publicTeachers(list))), { avalon: [{ id: tid(1), name: "小林" }], splendor: [{ id: tid(5), name: "小林" }] });
+  assert.deepEqual(L.teachGamesOf(list, " 小林 "), ["avalon", "splendor"]);
+  const full = L.normalizeState({ games: seed.games, teachers: list });
+  assert.equal(full.teachers.length, 2);
+});
+
+test("分桌结果标出谁会讲：本桌有人会讲 / 本轮到场会讲的人在哪（没上桌的排最前）", () => {
+  const s = base();
+  s.teachers = L.normalizeTeachers([teacher(1, "avalon", "老陈"), teacher(2, "avalon", "阿宁"), teacher(3, "splendor", "老陈")], ids(s));
+  const stored = L.normalizeSession("2026-10-09", {
+    rounds: [{ start: "18:30", end: "22:00" }],
+    signups: [
+      ...["a", "b", "c", "d", "e"].map((x, i) => p(x, ["avalon"], i)),
+      p("老陈", ["splendor"], 6),
+      p("k1", ["splendor"], 7),
+      p("阿宁", ["mahjong"], 8, { level: 2 }),
+    ],
+  }, ids(s));
+  s.sessions["2026-10-09"] = stored;
+  const v = L.sessionView(s, "2026-10-09", at("2026-10-07T04:00:00Z"));
+  const r = v.alloc.rounds[0];
+  const av = r.games.avalon.tables[0];
+  assert.equal(av.hasTeacher, false);
+  assert.ok(av.players.every(x => x.teach === false));
+  // 阿宁没上桌（麻将凑不齐）排在前面，老陈在璀璨宝石第 1 桌
+  assert.deepEqual(r.games.avalon.helpers.map(h => [h.name, h.at, h.table]), [["阿宁", null, null], ["老陈", "splendor", 1]]);
+  const sp = r.games.splendor.tables[0];
+  assert.equal(sp.hasTeacher, true);
+  assert.equal(sp.players.find(x => x.name === "老陈").teach, true);
+  // 只是「老手」不算会讲
+  assert.equal(r.unassigned.find(x => x.name === "阿宁").teach, false);
+});
+
+test("挂名会讲这款的人在这款游戏的各桌之间分散", () => {
+  const s = base();
+  s.games.find(g => g.id === "splendor").copies = 2;
+  s.teachers = L.normalizeTeachers([teacher(1, "splendor", "t1"), teacher(2, "splendor", "t2")], ids(s));
+  // 两位讲规人最先报名：没有分散的话会挤在第 1 桌
+  const stored = L.normalizeSession("2026-10-09", { rounds: [{ start: "18:30", end: "22:00" }], signups: [p("t1", ["splendor"], 0), p("t2", ["splendor"], 1), ...["a", "b", "c", "d", "e", "f"].map((x, i) => p(x, ["splendor"], i + 2))] }, ids(s));
+  s.sessions["2026-10-09"] = stored;
+  const tables = L.sessionView(s, "2026-10-09", at("2026-10-07T04:00:00Z")).alloc.rounds[0].games.splendor.tables;
+  assert.equal(tables.length, 2);
+  assert.ok(tables.every(tb => tb.hasTeacher), JSON.stringify(tables.map(tb => tb.players.map(x => x.name))));
+});
+
+test("管理员视图：每条报名带上它的称呼挂了哪些游戏的讲规", () => {
+  const s = base();
+  s.teachers = L.normalizeTeachers([teacher(1, "avalon", "小林")], ids(s));
+  s.sessions["2026-10-09"] = L.normalizeSession("2026-10-09", { signups: [p("小林", ["splendor"], 0)] }, ids(s));
+  const v = L.sessionView(s, "2026-10-09", at("2026-10-07T04:00:00Z"), { admin: true });
+  assert.deepEqual(v.signups[0].teachGames, ["avalon"]);
+});
+
+test("游戏 id 不能是 constructor / __proto__ 这类内置属性名；公开名单没有原型", () => {
+  const s = L.normalizeState({ games: [...seed.games, { name: "构造", en: "Constructor" }, { id: "__proto__", name: "原型" }, { id: "toString", name: "转字符串" }] });
+  const ids2 = s.games.map(g => g.id);
+  assert.ok(!ids2.some(L.isReservedId), ids2.join(","));
+  assert.ok(ids2.includes("constructor-game"));
+  const pub = L.publicTeachers([teacher(1, "avalon", "小林")]);
+  assert.equal(Object.getPrototypeOf(pub), null);
+  assert.deepEqual(JSON.parse(JSON.stringify(pub)), { avalon: [{ id: tid(1), name: "小林" }] });
+});
+
+test("名单索引按数组缓存：名单变了（新数组）结果跟着变", () => {
+  const s = base();
+  const a = L.normalizeTeachers([teacher(1, "avalon", "小林")], ids(s));
+  assert.deepEqual(L.teachGamesOf(a, "小林"), ["avalon"]);
+  const b = L.normalizeTeachers([teacher(1, "avalon", "小林"), teacher(2, "splendor", "小林")], ids(s));
+  assert.deepEqual(L.teachGamesOf(b, "小林").sort(), ["avalon", "splendor"]);
+  assert.deepEqual(L.teachGamesOf(a, "小林"), ["avalon"]);
+  assert.deepEqual(L.teachGamesOf(null, "小林"), []);
+});

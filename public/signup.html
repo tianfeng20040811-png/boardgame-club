@@ -117,11 +117,11 @@
               <p class="err" id="errLevel" role="alert"></p>
             </div>
 
-            <label class="toggle" id="teachRow" hidden>
-              <input type="checkbox" name="teach" id="teach">
-              <span class="toggle-ui" aria-hidden="true"></span>
-              <span><b>我愿意给新手讲规则</b><small>系统会优先把你分到有新手的桌</small></span>
-            </label>
+            <div class="field teach-field" id="teachRow" hidden>
+              <span class="label" id="teachLabel">我能讲规的游戏 <small>选填 · 以你的称呼长期挂在游戏库的「讲规名单」上</small></span>
+              <div class="teach-opts" id="teachOptions" role="group" aria-labelledby="teachLabel"></div>
+              <p class="hint">想提前学规则的同学可以在群里问你；当晚哪桌没人会讲，也可能请你过去讲几分钟。已挂名的要撤下，请到游戏库里点「撤下」。</p>
+            </div>
 
             <div class="field">
               <label class="label" for="note">备注 <small>选填，仅组织者可见</small></label>

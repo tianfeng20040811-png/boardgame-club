@@ -291,3 +291,21 @@ details[open] .sum-arrow::after { content: "收起"; font-size: 13px; }
 .rr-tab[aria-selected="true"] { border-color: var(--red); color: var(--red-deep); background: #fff6ef; }
 .name sup { font-size: 10px; color: var(--muted); margin-left: 2px; }
 .name.me sup { color: #ffe0d6; }
+
+/* 我能讲规的游戏 */
+.teach-opts { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 6px; }
+.topt { position: relative; cursor: pointer; }
+.topt input { position: absolute; opacity: 0; }
+.topt span { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; border: 1.5px solid var(--line-strong); background: #fff; font-size: 13.5px; transition: border-color 0.15s, background 0.15s; }
+.topt small { font-size: 11px; font-weight: 700; color: var(--jade); }
+.topt:hover span { border-color: var(--jade); }
+.topt input:checked + span { border-color: var(--jade); background: #eef8f4; box-shadow: 0 0 0 3px rgba(47, 165, 143, 0.14); }
+.topt input:focus-visible + span { outline: 2px solid var(--red); outline-offset: 2px; }
+.topt.listed { cursor: default; }
+.gopt-teach { grid-column: 1 / -1; justify-self: start; font-size: 12px; font-weight: 700; color: var(--jade); }
+.theme-guochao .teach-note { color: var(--muted); }
+.theme-guochao .teach-note.teach-ok { color: #0f7a54; }
+.theme-guochao .teach-note.teach-warn { color: #a34a04; }
+.theme-guochao .teach-list li { background: #fff; border-color: var(--line-strong); }
+.theme-guochao .teach-x { color: var(--danger); }
+.theme-guochao .teach-btn { --c: var(--jade); }

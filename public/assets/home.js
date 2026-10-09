@@ -263,7 +263,7 @@
         const open = s.gameIds.includes(g.id);
         return `<article class="board-row" style="--c:${B.color(g)}">
           <div class="board-icon">${B.icon(g, 26)}</div>
-          <div class="board-name"><b>${esc(g.name)}</b><small>${g.min}–${g.max} 人 · 约 ${g.minutes} 分钟</small></div>
+          <div class="board-name"><b>${esc(g.name)}</b><small>${g.min}–${g.max} 人 · 约 ${g.minutes} 分钟${B.teachersOf(g.id).length ? ` · 🎓 ${B.teachersOf(g.id).length} 人会讲` : ""}</small></div>
           <div class="board-meter"><div class="meter" role="img" aria-label="${esc(g.name)}：意向 ${it.any} 人，最少 ${g.min} 人成桌"><span style="width:${pct}%"></span><i style="left:100%" title="成桌最少人数"></i></div>
             <div class="meter-txt"><span>首选 <span class="mono">${it.first}</span> · 意向 <span class="mono">${it.any}</span> 人</span><span>${rounds.length > 1 ? perRound.join("") : esc(info.text)}</span></div></div>
           <div class="board-act"><span class="pill pill-${info.tone}">${esc(info.short || "可报名")}</span>${s.status === "open" && open ? `<a class="btn btn-sm ${info.tone === "forming" ? "btn-primary" : ""}" href="${href(g.id)}">加入</a>` : ""}</div>

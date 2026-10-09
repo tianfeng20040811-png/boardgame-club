@@ -16,6 +16,7 @@
   let forFriend = false;
   let pendingCreate = null; // 网络中断时重试复用同一个 id 和凭证
   let rosterRound = 1;
+  let teachPicked = new Set(); // 这次新勾的「我能讲规的游戏」（已挂名的显示为已勾、不能取消）
 
   function setHTML(el, html) {
     if (!el || el._html === html) return false;
@@ -136,6 +137,7 @@
                 <span class="gopt-meta">${g.min}–${g.max}人 · ${g.minutes}分钟 · ${B.DIFF[g.difficulty]}</span>
                 ${g.notice ? `<span class="gopt-warn">⚠ ${esc(g.notice)}</span>` : ""}
                 <span class="gopt-seat pill pill-${info.tone}" title="${esc(info.text)}">${esc(info.short)}</span>
+                ${B.teachersOf(g.id).length ? `<span class="gopt-teach" title="${B.teachersOf(g.id).length} 人挂名会讲这款的规则">🎓 ${B.teachersOf(g.id).length} 人会讲</span>` : ""}
               </span>
               <button type="button" class="gopt-video" data-open="${esc(g.id)}" aria-label="查看${esc(g.name)}的教学视频和规则">${g.video ? "▶ 教学" : "规则"}</button>
             </label>`;
@@ -216,6 +218,23 @@
     $("#teachRow").hidden = lv === undefined || lv === "0";
   }
 
+  // ---------- 我能讲规的游戏（按称呼对应长期讲规名单） ----------
+  function renderTeach() {
+    if (!snap) return;
+    const listed = new Set(B.rosterGamesFor($("#name").value));
+    const order = x => Math.max(0, B.GROUPS.indexOf(x.group));
+    const games = snap.games.filter(g => g.active || listed.has(g.id)).sort((a, b) => order(a) - order(b));
+    setHTML(
+      $("#teachOptions"),
+      games
+        .map(g => {
+          const on = listed.has(g.id);
+          return `<label class="topt ${on ? "listed" : ""}" style="--c:${B.color(g)}"${on ? ` title="已经挂在讲规名单上；撤下请到游戏库"` : ""}><input type="checkbox" name="teachGame" value="${esc(g.id)}" ${on || teachPicked.has(g.id) ? "checked" : ""} ${on ? "disabled" : ""}><span>${esc(g.name)}${on ? "<small>已挂名</small>" : ""}</span></label>`;
+        })
+        .join(""),
+    );
+  }
+
   // ---------- 我的报名（简版，完整版在 /me） ----------
   function renderMine() {
     const box = $("#mine");
@@ -266,8 +285,8 @@
       .map(({ g, a }) => {
         const tables = a.tables
           .map(t => {
-            const names = t.players.map(p => `<span class="name ${mine.has(p.id) ? "me" : ""}">${p.teach || p.level === 2 ? "🎓" : p.level === 0 ? "🌱" : ""}${esc(p.name)}${p.rank > 1 ? `<sup>${p.rank}</sup>` : ""}</span>`).join("");
-            return `<div class="rtable"><div class="rtable-h"><b>第 ${t.no} 桌</b><span>${t.players.length} 人${t.short ? ` · 还差 ${t.short} 人` : " · 已成桌"}</span></div><div class="names">${names}</div></div>`;
+            const names = t.players.map(p => `<span class="name ${mine.has(p.id) ? "me" : ""}">${p.teach ? "🎓" : p.level === 0 ? "🌱" : ""}${esc(p.name)}${p.rank > 1 ? `<sup>${p.rank}</sup>` : ""}</span>`).join("");
+            return `<div class="rtable"><div class="rtable-h"><b>第 ${t.no} 桌</b><span>${t.players.length} 人${t.short ? ` · 还差 ${t.short} 人` : " · 已成桌"}</span></div><div class="names">${names}</div>${B.teachNoteHtml(r, g.id, t)}</div>`;
           })
           .join("");
         return `<div class="roster-game" style="--c:${B.color(g)}"><h3><span class="gi">${B.icon(g, 20)}</span>${esc(g.name)}</h3><div class="roster-tables">${tables}</div></div>`;
@@ -276,7 +295,7 @@
     setHTML(
       body,
       blocks.length || un
-        ? `${blocks.join("")}${un}<p class="legend"><span>🎓 老手 / 愿意教学</span><span>🌱 新手</span><span>右上角小数字 = 分到的是第几志愿</span><span>报名截止前会随报名实时调整，开局后锁定</span></p>`
+        ? `${blocks.join("")}${un}<p class="legend"><span>🎓 挂名会讲这款的规则</span><span>🌱 新手</span><span>右上角小数字 = 分到的是第几志愿</span><span>报名截止前会随报名实时调整，开局后锁定</span></p>`
         : `<p class="roster-empty">这一轮还没有人报名，快来当第一个！</p>`,
     );
   }
@@ -295,6 +314,7 @@
     renderRounds(s);
     setFormEnabled(isOpen(s));
     updateLevelUI();
+    renderTeach();
     renderSummary();
   }
 
@@ -311,7 +331,7 @@
       prefs: [...ranked],
       name: $("#name").value.trim(),
       level: lv ? Number(lv.value) : null,
-      teach: $("#teach").checked && !$("#teachRow").hidden,
+      teachGames: $("#teachRow").hidden ? [] : [...teachPicked],
       note: $("#note").value.trim(),
       website: $("input[name=website]").value,
     };
@@ -368,14 +388,18 @@
     setBusy(true);
     try {
       let res;
-      const local = { name: d.name, prefs: d.prefs, rounds: d.rounds || [], level: d.level, teach: d.teach, note: d.note, hasPin: Boolean(d.pin) || Boolean(editing?.hasPin) };
+      const local = { name: d.name, prefs: d.prefs, rounds: d.rounds || [], level: d.level, note: d.note, hasPin: Boolean(d.pin) || Boolean(editing?.hasPin) };
+      // 报名时顺手挂的讲规名：凭证就是这条报名的凭证，存到设备上以后可以在游戏库撤下
+      const keepTeach = (list, token) => (list || []).forEach(t => B.saveMyTeach({ id: t.id, token, gameId: t.gameId, name: d.name }));
       if (editing) {
         res = await B.api(`/api/signups/${encodeURIComponent(editing.id)}`, { method: "PATCH", token: editing.token, body: d });
         B.updateMine(editing.id, local);
+        keepTeach(res.signup.teachers, editing.token);
+        teachPicked = new Set();
         const id = editing.id;
         editing = null;
         B.setSnapshot(res.state);
-        showSuccess(id, true);
+        showSuccess(id, true, res.signup.added);
       } else {
         const sig = JSON.stringify(d);
         if (!pendingCreate || pendingCreate.sig !== sig) pendingCreate = { sig, id: `s${randHex(6)}`, token: randToken() };
@@ -392,9 +416,11 @@
         }
         pendingCreate = null;
         B.updateMine(id, { pending: false, id: res.signup.id, sessionId: res.signup.sessionId });
+        keepTeach(res.signup.teachers, token);
+        teachPicked = new Set();
         if (!forFriend) B.store.set(B.NAME_KEY, d.name);
         B.setSnapshot(res.state);
-        showSuccess(res.signup.id, false);
+        showSuccess(res.signup.id, false, res.signup.added);
       }
     } catch (error) {
       if (error.status === 409 && /称呼|报名过/.test(error.message)) {
@@ -410,8 +436,9 @@
     }
   }
 
-  function showSuccess(id, edited) {
+  function showSuccess(id, edited, teachAdded = []) {
     lastShownId = id;
+    const teachLine = (teachAdded || []).length ? `<div class="full"><small>已挂到讲规名单</small><b>🎓 ${esc(teachAdded.map(t => gameName(t.gameId)).join("、"))}</b></div>` : "";
     const s = snap.sessions.find(x => B.placementOf(x, id)) || session();
     const pl = s ? B.placementOf(s, id) : null;
     const m = B.getMine().find(x => x.id === id) || {};
@@ -429,6 +456,7 @@
           <div><small>地点</small><b>${esc(s.location)}</b></div>
           <div class="full"><small>我的志愿</small><b>${esc((m.prefs || []).map((g, i) => `${i + 1}.${gameName(g)}`).join("  "))}</b></div>
           ${lines}
+          ${teachLine}
         </div>
       </div>
       <p class="hint">分桌在开局前会随报名人数自动调整；开局（${esc(s.time)}）后锁定。${m.hasPin ? "已设找回码，换浏览器也能在「我的」页面找回。" : "没设找回码：换浏览器后看不到这条报名，可以点「修改」补一个。"}</p>
@@ -457,7 +485,7 @@
     clearErrors();
     $("#name").value = "";
     $$("input[name=level]").forEach(r => (r.checked = false));
-    $("#teach").checked = false;
+    teachPicked = new Set();
     $("#note").value = "";
     $("#pin").value = "";
     if (!keepGames) ranked = [];
@@ -478,7 +506,8 @@
     $("#name").value = m.name || player?.name || "";
     const level = m.level ?? player?.level;
     $$("input[name=level]").forEach(r => (r.checked = String(r.value) === String(level)));
-    $("#teach").checked = Boolean(m.teach ?? player?.teach);
+    teachPicked = new Set();
+    renderTeach();
     $("#note").value = m.note || "";
     $("#pin").value = "";
     $("#pin").placeholder = m.hasPin ? "已设置；填新的 4 位数字可更换" : "如：0612";
@@ -574,14 +603,22 @@
     $("#levelSeg").addEventListener("change", e => {
       $("#errLevel").textContent = "";
       const lv = e.target.value;
-      if (lv === "2") $("#teach").checked = true;
       updateLevelUI();
-      say(lv === "0" ? "初入此道？放心，自有老手带你。" : lv === "2" ? "高手驾到——愿意带带新人吗？" : "老手了，开局不用等。");
+      say(lv === "0" ? "初入此道？放心，自有老手带你。" : lv === "2" ? "高手驾到——会讲哪几款？在下面勾上。" : "老手了，开局不用等。");
     });
-    $("#teach").addEventListener("change", e => e.target.checked && say("传道授业，功德无量。"));
+    $("#teachOptions").addEventListener("change", e => {
+      if (e.target.name !== "teachGame") return;
+      if (e.target.checked) teachPicked.add(e.target.value);
+      else teachPicked.delete(e.target.value);
+      renderTeach(); // 让缓存的 HTML 跟上勾选状态，之后重置表单时才会真正刷新
+      if (e.target.checked) say(`会讲「${gameName(e.target.value)}」？传道授业，功德无量。`);
+    });
+    let nameTimer;
     $("#name").addEventListener("input", () => {
       $("#errName").textContent = "";
       $("#name").removeAttribute("aria-invalid");
+      clearTimeout(nameTimer);
+      nameTimer = setTimeout(renderTeach, 250);
     });
     $("#pin").addEventListener("input", e => {
       e.target.value = e.target.value.replace(/\D/g, "").slice(0, 4);

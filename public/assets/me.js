@@ -6,13 +6,28 @@
   let snap = null;
   const gameName = id => B.gameById(id)?.name || id || "";
 
-  function tablemates(session, pl) {
-    if (pl.kind !== "seat") return "";
+  function tableOf(session, pl) {
+    if (pl.kind !== "seat") return null;
     const r = session.alloc.rounds.find(x => x.index === pl.round);
     const t = r?.games[pl.gameId]?.tables.find(x => x.no === pl.table);
-    if (!t) return "";
-    const others = t.players.filter(p => p.id !== pl.player.id).map(p => p.name);
+    return t ? { r, t } : null;
+  }
+  function tablemates(session, pl) {
+    const at = tableOf(session, pl);
+    if (!at) return "";
+    const others = at.t.players.filter(p => p.id !== pl.player.id).map(p => p.name);
     return others.length ? `同桌：${others.map(esc).join("、")}` : "";
+  }
+  // 我的讲规挂名（这台设备挂的、还在名单上的）
+  function renderTeach() {
+    const box = $("#myTeach");
+    if (!box) return;
+    const list = B.getMyTeach().filter(x => B.teachersOf(x.gameId).some(t => t.id === x.id));
+    box.hidden = !list.length;
+    box.innerHTML = list.length
+      ? `<h2>我的讲规挂名</h2><p class="hint">这些挂名长期有效，显示在游戏库里。想提前学的同学可能会在群里问你；当晚哪桌没人会讲，也可能请你过去讲几分钟。</p>
+        <ul class="teach-list">${list.map(x => `<li><span>🎓 ${esc(gameName(x.gameId))} <small>· ${esc(x.name)}</small></span><button class="teach-x" type="button" data-teach-del="${esc(x.id)}">撤下</button></li>`).join("")}</ul>`
+      : "";
   }
 
   function card(m, s) {
@@ -32,7 +47,8 @@
           const mates = tablemates(s, p);
           const tag = p.kind === "seat" ? `<span class="pill pill-ok">${esc(gameName(p.gameId))} · 第 ${p.table} 桌</span>` : p.kind === "none" ? `<span class="pill pill-forming">暂未成桌</span>` : `<span class="pill pill-idle">不参加</span>`;
           const round = s.rounds.find(r => r.index === p.round);
-          return `<li><div class="me-round-h"><b>${esc(p.label)}</b>${round && s.rounds.length > 1 ? `<span class="mono">${esc(round.start)}–${esc(round.end)}</span>` : ""}${tag}${p.kind === "seat" && p.rank > 1 ? `<small>第 ${p.rank} 志愿</small>` : ""}</div>${mates ? `<p class="hint">${mates}</p>` : p.kind === "none" ? `<p class="hint">你的志愿暂时凑不齐人。更多人报名后会自动重新分配；开局时组织者也会现场协调。多排几个志愿更容易成桌。</p>` : ""}</li>`;
+          const at = tableOf(s, p);
+          return `<li><div class="me-round-h"><b>${esc(p.label)}</b>${round && s.rounds.length > 1 ? `<span class="mono">${esc(round.start)}–${esc(round.end)}</span>` : ""}${tag}${p.kind === "seat" && p.rank > 1 ? `<small>第 ${p.rank} 志愿</small>` : ""}</div>${mates ? `<p class="hint">${mates}</p>` : p.kind === "none" ? `<p class="hint">你的志愿暂时凑不齐人。更多人报名后会自动重新分配；开局时组织者也会现场协调。多排几个志愿更容易成桌。</p>` : ""}${at ? B.teachNoteHtml(at.r, p.gameId, at.t) : ""}</li>`;
         })
         .join("")}</ul>`;
     const canEdit = s && s.status === "open" && pl;
@@ -52,6 +68,7 @@
 
   function render() {
     if (!snap) return;
+    renderTeach();
     const list = B.getMine();
     const box = $("#mineList");
     if (!list.length) {

@@ -203,3 +203,19 @@ p { margin: 0; }
   .video-shell { height: 0; padding-top: 56.25%; }
   .portal { height: min(300px, 70vw); }
 }
+
+/* 讲规名单（各页面共用） */
+.teach-btn { flex: none; padding: 4px 10px; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--c, var(--cyan)) 55%, transparent); background: transparent; color: var(--c, var(--cyan)); font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+.teach-btn:hover { background: color-mix(in srgb, var(--c, var(--cyan)) 14%, transparent); }
+.teach-btn.on { color: var(--muted); border-color: var(--line); }
+.teach-list { list-style: none; display: flex; flex-wrap: wrap; gap: 6px; padding: 0; margin: 0 0 4px; }
+.teach-list li { display: inline-flex; align-items: center; gap: 8px; padding: 4px 6px 4px 12px; border-radius: 999px; border: 1px solid var(--line); background: rgba(255, 255, 255, 0.04); font-size: 13.5px; }
+.teach-list li small { color: var(--muted); }
+.teach-x { border: 1px solid transparent; border-radius: 999px; background: none; color: var(--danger); font: inherit; font-size: 12px; padding: 2px 8px; cursor: pointer; }
+.teach-x:hover { border-color: var(--danger); }
+.teach-form { display: grid; gap: 8px; margin-top: 14px; }
+.teach-note { margin-top: 6px; font-size: 12.5px; line-height: 1.55; color: var(--muted); }
+.teach-note.teach-ok { color: var(--ok); }
+.teach-note.teach-warn { color: var(--amber); }
+.teach-note b { color: var(--text); font-weight: 700; }
+.gd-teach .btn { margin-top: 8px; }

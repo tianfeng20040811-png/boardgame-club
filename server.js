@@ -312,6 +312,7 @@ function publicSnapshot() {
     serverNow: now,
     settings: publicSettings(state.settings),
     games: state.games.map(L.publicGame),
+    teachers: L.publicTeachers(state.teachers),
     sessions,
     adminEnabled: Boolean(ADMIN_KEY),
     readOnly: Boolean(storeError),
@@ -328,6 +329,7 @@ function adminSnapshot(who) {
     allSessions: [...keys].sort().reverse().map(key => L.sessionView(state, key, now, { admin: true })),
     me: who ? { role: who.role, name: who.role === "owner" ? "所有者" : who.name } : null,
     admins: who && who.role === "owner" ? (state.admins || []).map(({ keyHash, ...a }) => a) : [],
+    teacherList: (state.teachers || []).map(({ tokenHash, ...t }) => t),
     auditLog: (state.auditLog || []).slice(-200).reverse(),
   };
 }
@@ -370,6 +372,7 @@ function applySignupFields(target, body, offered, isAdmin, roundCount) {
   }
   if ("level" in body) target.level = body.level === null || body.level === "" ? null : L.clampInt(body.level, 0, 2, null);
   if ("teach" in body) target.teach = Boolean(body.teach);
+  if (Array.isArray(body.teachGames)) target.teach = false; // 旧版「愿意教学」改由讲规名单表示
   if ("note" in body) target.note = L.cleanText(body.note, 120);
   if (isAdmin && "checkedIn" in body) target.checkedIn = Boolean(body.checkedIn);
   if (target.level === 0) target.teach = false;
@@ -378,6 +381,42 @@ function applySignupFields(target, body, offered, isAdmin, roundCount) {
 }
 const PIN_RE = /^\d{4}$/;
 const pinHashOf = (id, pin) => sha256(`pin:${id}:${pin}`);
+
+// 报名表里勾的「我能讲规的游戏」：只往长期讲规名单里添加，不会删除（撤下在游戏库里操作）
+// 普通访客和游戏库挂名共用同一个每 IP 名额（10 分钟 30 条），一次最多 10 款，防止借报名表刷满名单
+const TEACH_LIMIT = 30;
+const TEACH_PER_REQUEST = 10;
+function teachRoom(req, isAdmin) {
+  if (isAdmin) return L.MAX_PREFS;
+  return Math.min(TEACH_PER_REQUEST, Math.max(0, TEACH_LIMIT - recent(bucketKey(req, "teach-ok"), SIGNUP_WINDOW).length));
+}
+function countTeachAdds(req, isAdmin, n) {
+  if (isAdmin) return;
+  for (let i = 0; i < n; i++) hit(bucketKey(req, "teach-ok"), SIGNUP_WINDOW);
+}
+// 只返回这个称呼还没挂过的游戏，再按名额截断
+function teachGamesFromBody(draft, body, isAdmin, level, room, name) {
+  if (!Array.isArray(body.teachGames) || level === 0) return [];
+  const ok = new Set(draft.games.filter(g => isAdmin || g.active).map(g => g.id));
+  const k = L.nameKey(name);
+  const listed = new Set((draft.teachers || []).filter(t => L.nameKey(t.name) === k).map(t => t.gameId));
+  return [...new Set(body.teachGames.map(String))].filter(id => ok.has(id) && !listed.has(id)).slice(0, room);
+}
+// 这个凭证名下的全部挂名（重试时也能把挂名的 id 交回设备）
+const ownedTeachers = (draft, tokenHash) => (tokenHash ? (draft.teachers || []).filter(t => t.tokenHash === tokenHash).map(t => ({ id: t.id, gameId: t.gameId })) : []);
+function addTeacherEntries(draft, name, gameIds, tokenHash, by) {
+  const k = L.nameKey(name);
+  const created = [];
+  draft.teachers = draft.teachers || [];
+  for (const gameId of gameIds) {
+    if (draft.teachers.some(t => t.gameId === gameId && L.nameKey(t.name) === k)) continue;
+    if (draft.teachers.length >= L.MAX_TEACHERS || draft.teachers.filter(t => t.gameId === gameId).length >= L.MAX_TEACHERS_PER_GAME) continue;
+    const t = { id: `t${crypto.randomBytes(6).toString("hex")}`, gameId, name, createdAt: new Date().toISOString(), tokenHash: tokenHash || "", by };
+    draft.teachers.push(t);
+    created.push({ id: t.id, gameId });
+  }
+  return created;
+}
 
 const CLIENT_ID_RE = /^s[0-9a-f]{12}$/;
 const CLIENT_TOKEN_RE = /^[A-Za-z0-9_-]{22,64}$/;
@@ -398,12 +437,17 @@ async function createSignup(req, body) {
     // 设备端自己生成 id 和凭证：就算网络中途断了，设备上也已经保存，可以重试或查到这条报名
     const clientId = CLIENT_ID_RE.test(String(body.id || "")) ? body.id : "";
     const clientToken = clientId && CLIENT_TOKEN_RE.test(String(body.token || "")) ? body.token : "";
+    const room = teachRoom(req, admin);
     const result = await mutate(draft => {
       const now = nowMs();
       if (clientId) {
         const existing = findSignup(draft, clientId);
         if (existing) {
-          if (clientToken && existing.signup.tokenHash && safeEqual(sha256(clientToken), existing.signup.tokenHash)) return { id: clientId, token: clientToken, sessionId: existing.key, repeat: true };
+          if (clientToken && existing.signup.tokenHash && safeEqual(sha256(clientToken), existing.signup.tokenHash)) {
+            // 重试：把第一次提交时顺手挂的讲规名也一并返回，设备才能记下它们
+            const teachers = ownedTeachers(draft, existing.signup.tokenHash);
+            return { id: clientId, token: clientToken, sessionId: existing.key, repeat: true, teachers, added: teachers };
+          }
           fail(409, "提交冲突，请刷新页面后重试");
         }
       }
@@ -428,11 +472,13 @@ async function createSignup(req, body) {
       entry.tokenHash = sha256(token);
       if (body.pin) entry.pinHash = pinHashOf(entry.id, String(body.pin));
       sess.signups.push(entry);
-      return { id: entry.id, token, sessionId: key, name: entry.name, first: entry.prefs[0] };
+      const added = addTeacherEntries(draft, entry.name, teachGamesFromBody(draft, body, admin, entry.level, room, entry.name), entry.tokenHash, admin ? "admin" : "signup");
+      return { id: entry.id, token, sessionId: key, name: entry.name, first: entry.prefs[0], teachers: added, added };
     }, who ? r => (r.repeat ? null : { who, action: "代报名", detail: `${r.sessionId} ${r.name} · ${gameNameOf(r.first)}` }) : null);
     delete result.name;
     delete result.first;
     if (!admin && !result.repeat) hit(okKey, SIGNUP_WINDOW);
+    if (!result.repeat) countTeachAdds(req, admin, result.added.length);
     return result;
   } catch (error) {
     if (!admin && error.status && error.status < 500 && error.status !== 429) hit(failKey, SIGNUP_WINDOW);
@@ -453,6 +499,7 @@ async function updateSignup(req, id, body) {
   const who = checkAdmin(req);
   if (!who) rateLimit(req, "edit", 60, SIGNUP_WINDOW);
   let logged = null;
+  const room = teachRoom(req, Boolean(who));
   const result = await mutate(draft => {
     const found = findSignup(draft, id);
     if (!found) fail(404, "找不到这条报名，可能已被取消");
@@ -477,10 +524,26 @@ async function updateSignup(req, id, body) {
     if (JSON.stringify(next.prefs) !== JSON.stringify(prev.prefs)) next.prefsAt = iso;
     next.updatedAt = iso;
     found.sess.signups[found.index] = next;
+    // 改了称呼：这条报名自己挂的讲规名跟着改（新称呼在那款游戏已经挂过的就不动）
+    const oldK = L.nameKey(prev.name);
+    const newK = L.nameKey(next.name);
+    if (oldK !== newK) {
+      const owned = new Set([prev.tokenHash, ...(prev.extraTokenHashes || [])].filter(Boolean));
+      for (const t of draft.teachers || []) {
+        if (L.nameKey(t.name) !== oldK || !owned.has(t.tokenHash)) continue;
+        if (draft.teachers.some(o => o !== t && o.gameId === t.gameId && L.nameKey(o.name) === newK)) continue;
+        t.name = next.name;
+      }
+    }
+    const editToken = String(req.headers["x-edit-token"] || "");
+    const ownerHash = admin || !editToken ? prev.tokenHash : sha256(editToken);
+    const added = addTeacherEntries(draft, next.name, teachGamesFromBody(draft, body, admin, next.level, room, next.name), ownerHash, admin ? "admin" : "signup");
+    const teachers = ownedTeachers(draft, ownerHash);
     const onlyCheckin = Object.keys(body).every(k => k === "checkedIn");
     logged = onlyCheckin ? { action: next.checkedIn ? "签到" : "取消签到", detail: `${found.key} ${next.name}` } : { action: "修改报名", detail: `${found.key} ${prev.name}${prev.name !== next.name ? ` → ${next.name}` : ""} · ${gameNameOf(next.prefs[0])}` };
-    return { id, sessionId: found.key };
+    return { id, sessionId: found.key, teachers, added };
   }, who ? () => logged && { who, ...logged } : null);
+  countTeachAdds(req, Boolean(who), result.added.length);
   return result;
 }
 
@@ -526,6 +589,65 @@ async function recoverSignup(req, body) {
   });
   const x = state.sessions[key].signups.find(y => y.id === target.id);
   return { id: x.id, token, sessionId: key, name: x.name, prefs: x.prefs, rounds: x.rounds, level: x.level, teach: x.teach, note: x.note };
+}
+
+// ---------- 讲规名单（游戏库里自己挂名 / 撤下；管理员可代挂、可删除） ----------
+async function createTeacher(req, body) {
+  const who = checkAdmin(req);
+  const okKey = bucketKey(req, "teach-ok");
+  const failKey = bucketKey(req, "teach-fail");
+  if (!who && (isLimited(okKey, TEACH_LIMIT, SIGNUP_WINDOW) || isLimited(failKey, 100, SIGNUP_WINDOW))) fail(429, "操作太频繁了，请稍后再试");
+  try {
+    const gameId = String(body.gameId || "");
+    const name = L.cleanLine(body.name, 20);
+    if (!name) fail(400, "请填写你的称呼");
+    // 设备端生成 id 和凭证：网络中断后重试不会重复挂名，设备上也一定存着撤下用的凭证
+    const clientId = L.TEACHER_ID_RE.test(String(body.id || "")) ? body.id : "";
+    const clientToken = clientId && CLIENT_TOKEN_RE.test(String(body.token || "")) ? body.token : "";
+    const result = await mutate(draft => {
+      draft.teachers = draft.teachers || [];
+      if (clientId) {
+        const existing = draft.teachers.find(t => t.id === clientId);
+        if (existing) {
+          if (clientToken && existing.tokenHash && safeEqual(sha256(clientToken), existing.tokenHash)) return { id: clientId, token: clientToken, gameId: existing.gameId, name: existing.name, repeat: true };
+          fail(409, "提交冲突，请刷新页面后重试");
+        }
+      }
+      const g = draft.games.find(x => x.id === gameId);
+      if (!g || (!who && !g.active)) fail(404, "找不到这款游戏，请刷新页面后再试");
+      const k = L.nameKey(name);
+      if (draft.teachers.some(t => t.gameId === gameId && L.nameKey(t.name) === k)) fail(409, `「${name}」已经在《${g.name}》的讲规名单里了`);
+      if (draft.teachers.filter(t => t.gameId === gameId).length >= L.MAX_TEACHERS_PER_GAME) fail(409, "这款游戏的讲规名单已经满了");
+      if (draft.teachers.length >= L.MAX_TEACHERS) fail(409, "讲规名单已满，请联系组织者");
+      const token = clientToken || crypto.randomBytes(18).toString("base64url");
+      const t = { id: clientToken ? clientId : `t${crypto.randomBytes(6).toString("hex")}`, gameId, name, createdAt: new Date().toISOString(), tokenHash: sha256(token), by: who ? "admin" : "self" };
+      draft.teachers.push(t);
+      return { id: t.id, token, gameId, name, gameName: g.name };
+    }, who ? r => (r.repeat ? null : { who, action: "代挂讲规名", detail: `${r.gameName} · ${r.name}` }) : null);
+    if (!who && !result.repeat) hit(okKey, SIGNUP_WINDOW);
+    delete result.gameName;
+    return result;
+  } catch (error) {
+    if (!who && error.status && error.status < 500 && error.status !== 429) hit(failKey, SIGNUP_WINDOW);
+    throw error;
+  }
+}
+
+async function deleteTeacher(req, id) {
+  const who = checkAdmin(req);
+  if (!who) rateLimit(req, "edit", 60, SIGNUP_WINDOW);
+  let detail = "";
+  return mutate(draft => {
+    const t = (draft.teachers || []).find(x => x.id === id);
+    if (!t) fail(404, "这条挂名已经撤下了");
+    if (!who) {
+      const token = String(req.headers["x-edit-token"] || "");
+      if (!token || !t.tokenHash || !safeEqual(sha256(token), t.tokenHash)) fail(403, "只能在挂名时用的设备上撤下；换了设备请联系组织者");
+    }
+    detail = `${draft.games.find(g => g.id === t.gameId)?.name || t.gameId} · ${t.name}`;
+    draft.teachers = draft.teachers.filter(x => x.id !== id);
+    return { id };
+  }, who ? () => ({ who, action: "撤下讲规名", detail }) : null);
 }
 
 // ---------- 管理：场次 / 设置 / 桌游 ----------
@@ -667,6 +789,7 @@ async function deleteGame(id, who) {
     if (used) fail(409, "已有报名记录用到这款游戏，不能删除。可以把它设为“暂不开放”");
     name = draft.games[index].name;
     draft.games.splice(index, 1);
+    draft.teachers = (draft.teachers || []).filter(t => t.gameId !== id);
     for (const s of Object.values(draft.sessions)) {
       s.gameIds = s.gameIds.filter(g => g !== id);
       delete s.tableSizes[id];
@@ -742,7 +865,7 @@ function buildCsv(which) {
   const keys = which === "all" ? Object.keys(state.sessions).sort() : [which];
   const gameName = id => state.games.find(g => g.id === id)?.name || id || "";
   const maxRounds = Math.max(1, ...keys.filter(L.isDateKey).map(k => L.sessionTiming(k, state.sessions[k], state.settings).rounds.length));
-  const header = ["场次日期", "序号", "称呼", "志愿顺序", "参加轮次", "桌游经验", "愿意教学"];
+  const header = ["场次日期", "序号", "称呼", "志愿顺序", "参加轮次", "桌游经验", "能讲规"];
   for (let r = 1; r <= maxRounds; r++) header.push(`第${r}轮分配`);
   header.push("签到", "备注", "设了找回码", "报名时间", "最后修改", "来源");
   const rows = [header];
@@ -764,7 +887,7 @@ function buildCsv(which) {
       .slice()
       .sort((x, y) => x.createdAt.localeCompare(y.createdAt))
       .forEach((sg, i) => {
-        const row = [key, i + 1, sg.name, sg.prefs.map((g, j) => `${j + 1}.${gameName(g)}`).join(" "), sg.rounds.length ? sg.rounds.map(n => `第${n}轮`).join("、") : "全部", sg.level === null ? "" : L.LEVELS[sg.level], sg.teach ? "是" : ""];
+        const row = [key, i + 1, sg.name, sg.prefs.map((g, j) => `${j + 1}.${gameName(g)}`).join(" "), sg.rounds.length ? sg.rounds.map(n => `第${n}轮`).join("、") : "全部", sg.level === null ? "" : L.LEVELS[sg.level], sg.teachGames.map(gameName).join("、") || (sg.teach ? "愿意教学" : "")];
         for (let r = 0; r < maxRounds; r++) row.push(place[r] ? place[r].get(sg.id) || (r < view.rounds.length ? "不参加" : "") : "");
         row.push(sg.checkedIn ? "已签到" : "", sg.note, sg.hasPin ? "是" : "", fmt(sg.createdAt), fmt(sg.updatedAt), { self: "本人", admin: "管理员录入", import: "旧系统导入" }[sg.by] || sg.by);
         rows.push(row);
@@ -938,6 +1061,17 @@ async function handleApi(req, res, pathname, query) {
     if (parts.length === 3 && method === "DELETE") {
       const result = await deleteSignup(req, parts[2]);
       return sendJson(req, res, 200, { ok: true, signup: result, state: snap() });
+    }
+  }
+
+  if (parts[1] === "teachers") {
+    if (parts.length === 2 && method === "POST") {
+      const teacher = await createTeacher(req, await readBody(req, 4 * 1024));
+      return sendJson(req, res, 201, { ok: true, teacher, state: snap() });
+    }
+    if (parts.length === 3 && method === "DELETE") {
+      await deleteTeacher(req, parts[2]);
+      return sendJson(req, res, 200, { ok: true, state: snap() });
     }
   }
 

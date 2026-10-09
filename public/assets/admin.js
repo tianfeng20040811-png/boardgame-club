@@ -118,6 +118,14 @@
       .join("");
   }
   const prefsText = s => (s.prefs || []).map((g, i) => `${i + 1}.${gname(g)}`).join(" ");
+  // 讲规名单（后台用自己的数据）
+  const rosterOf = gid => (data?.teacherList || []).filter(t => t.gameId === gid).sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+  const rosterGames = name => {
+    const k = B.nameKey(name);
+    return k ? [...new Set((data?.teacherList || []).filter(t => B.nameKey(t.name) === k).map(t => t.gameId))] : [];
+  };
+  const canTeachAny = s => (s.teachGames || []).length > 0 || s.teach;
+  const teachOpts = gid => ({ gameName: id => game(id)?.name || "", roster: rosterOf(gid) });
   const roundsText = (s, v) => (v.rounds.length < 2 ? "—" : !s.rounds?.length ? "全部" : s.rounds.map(n => `第${n}轮`).join("、"));
   const roundSpan = r => `${r.start}–${r.end}`;
   const sameRounds = (a, b) => a.length === b.length && a.every((r, i) => r.start === b[i].start && r.end === b[i].end);
@@ -171,14 +179,14 @@
       if (filter === "notin") return !s.checkedIn;
       if (filter === "wait") return unplaced(pl.get(s.id));
       if (filter === "new") return s.level === 0;
-      if (filter === "teach") return s.teach || s.level === 2;
+      if (filter === "teach") return canTeachAny(s);
       return true;
     });
     const k = {
       total: all.length,
       inn: all.filter(s => s.checkedIn).length,
       newbie: all.filter(s => s.level === 0).length,
-      teach: all.filter(s => s.teach || s.level === 2).length,
+      teach: all.filter(canTeachAny).length,
       wait: all.filter(s => unplaced(pl.get(s.id))).length,
       tables: v.alloc.rounds.reduce((n, r) => n + r.totals.tablesReady, 0),
     };
@@ -188,7 +196,7 @@
       <div class="toolbar" id="listToolbar">
         <input class="input" id="q" type="search" placeholder="搜索称呼、游戏或备注" value="${esc(q)}">
         <select class="select" id="filter">
-          ${[["all", "全部"], ["notin", "未签到"], ["in", "已签到"], ["wait", "有轮次未成桌"], ["new", "新手"], ["teach", "能教/愿教"]].map(([v2, l]) => `<option value="${v2}" ${filter === v2 ? "selected" : ""}>${l}</option>`).join("")}
+          ${[["all", "全部"], ["notin", "未签到"], ["in", "已签到"], ["wait", "有轮次未成桌"], ["new", "新手"], ["teach", "能讲规"]].map(([v2, l]) => `<option value="${v2}" ${filter === v2 ? "selected" : ""}>${l}</option>`).join("")}
         </select>
         <button class="btn btn-sm btn-primary" type="button" data-act="add">＋ 添加报名</button>
         <button class="btn btn-sm" type="button" data-act="csv">导出本场 CSV</button>
@@ -197,7 +205,7 @@
       <div id="listResults"></div>`;
     }
     $("#listKpis", box).innerHTML = `
-      <div class="kpis"><span class="kpi"><b>${k.total}</b>报名</span><span class="kpi"><b>${k.inn}</b>已签到</span><span class="kpi"><b>${k.tables}</b>已成桌${multi ? "（各轮合计）" : ""}</span><span class="kpi"><b>${k.newbie}</b>新手</span><span class="kpi"><b>${k.teach}</b>能教/愿教</span><span class="kpi"><b>${k.wait}</b>有轮次未成桌</span></div>`;
+      <div class="kpis"><span class="kpi"><b>${k.total}</b>报名</span><span class="kpi"><b>${k.inn}</b>已签到</span><span class="kpi"><b>${k.tables}</b>已成桌${multi ? "（各轮合计）" : ""}</span><span class="kpi"><b>${k.newbie}</b>新手</span><span class="kpi"><b>${k.teach}</b>能讲规</span><span class="kpi"><b>${k.wait}</b>有轮次未成桌</span></div>`;
     $("#listResults", box).innerHTML = `${rows.length ? `<div class="tbl-wrap"><table class="tbl"><thead><tr><th>#</th><th>称呼</th><th>志愿顺序</th>${multi ? "<th>参加轮次</th>" : ""}<th>熟悉</th><th>分配结果</th><th>签到</th><th>备注</th><th>报名时间</th><th>操作</th></tr></thead><tbody>
         ${rows
           .map(s => {
@@ -209,7 +217,7 @@
               <td><b>${esc(s.name)}</b>${s.by !== "self" ? ` <span class="tag">${s.by === "admin" ? "代报" : "导入"}</span>` : ""}${s.hasPin ? ` <span class="tag" title="设了找回码">🔑</span>` : ""}</td>
               <td class="prefs" title="${esc(prefsText(s))}">${prefs.slice(0, 4).map((g, i) => `<span class="pref"><i>${i + 1}</i>${esc(gname(g))}</span>`).join("")}${prefs.length > 4 ? `<span class="tag">+${prefs.length - 4}</span>` : ""}</td>
               ${multi ? `<td class="time">${esc(roundsText(s, v))}</td>` : ""}
-              <td><span class="tag ${lvTag}">${esc(lv)}</span>${s.teach ? ` <span class="tag tag-pro">愿教</span>` : ""}</td>
+              <td><span class="tag ${lvTag}">${esc(lv)}</span>${(s.teachGames || []).length ? ` <span class="tag tag-pro" title="挂名会讲：${esc(s.teachGames.map(gname).join("、"))}">🎓 ${esc(s.teachGames.slice(0, 2).map(gname).join("、"))}${s.teachGames.length > 2 ? ` +${s.teachGames.length - 2}` : ""}</span>` : s.teach ? ` <span class="tag tag-pro">愿教</span>` : ""}</td>
               <td>${placeText(pl.get(s.id))}</td>
               <td><label class="check"><input type="checkbox" data-checkin="${esc(s.id)}" ${s.checkedIn ? "checked" : ""} aria-label="${esc(s.name)} 签到"></label></td>
               <td class="note">${esc(s.note)}</td>
@@ -233,7 +241,9 @@
         <div class="pp-opts" role="group" aria-label="想玩的游戏">${ids.map(id => `<button class="pp-opt" type="button" data-pp="${esc(id)}" aria-pressed="false"><b class="pp-rank"></b>${esc(gname(id))}${v.gameIds.includes(id) ? "" : `<small>本场未开放</small>`}</button>`).join("")}</div></div>
       ${multi ? `<div class="field span-all"><span class="label">参加轮次</span><div class="toolbar">${v.rounds.map(r => `<label class="check"><input type="checkbox" name="r" value="${r.index}" ${!s?.rounds?.length || s.rounds.includes(r.index) ? "checked" : ""}>第${r.index}轮 <span class="mono">${esc(roundSpan(r))}</span></label>`).join("")}</div></div>` : ""}
       <div class="field"><label class="label" for="f-level">熟悉程度</label><select class="select" id="f-level" name="level"><option value="">未填</option>${B.LEVELS.map((l, i) => `<option value="${i}" ${s?.level === i ? "selected" : ""}>${l}</option>`).join("")}</select></div>
-      <div class="field"><span class="label">其他</span><label class="check"><input type="checkbox" name="teach" ${s?.teach ? "checked" : ""}>愿意教学</label><label class="check"><input type="checkbox" name="checkedIn" ${s?.checkedIn ? "checked" : ""}>已签到</label></div>
+      <div class="field"><span class="label">签到</span><label class="check"><input type="checkbox" name="checkedIn" ${s?.checkedIn ? "checked" : ""}>已签到</label></div>
+      <div class="field span-all"><span class="label">能讲规的游戏 <small>勾上的会以这个称呼挂到讲规名单；已挂名的要撤下请到「桌游」页</small></span>
+        <div class="pp-opts" id="tpOpts" role="group" aria-label="能讲规的游戏"></div></div>
       <div class="field span-all"><label class="label" for="f-note">备注</label><textarea class="textarea" id="f-note" name="note" maxlength="120">${esc(s?.note || "")}</textarea></div>
       <div class="field"><label class="label" for="f-pin">${s?.hasPin ? "重设找回码" : "找回码"} <small>选填 4 位数字${s?.hasPin ? "，留空不改" : ""}</small></label><input class="input mono" id="f-pin" name="pin" inputmode="numeric" maxlength="4" pattern="[0-9]{4}" autocomplete="off"></div>
       <div class="modal-actions span-all"><button class="btn btn-ghost" type="button" data-close>取消</button><button class="btn btn-primary" type="submit">保存</button></div>
@@ -245,7 +255,7 @@
     const m = B.openModal(signupForm(s, v), { wide: true });
     const order = (s?.prefs || []).filter(g => game(g));
     const paint = () => {
-      $$(".pp-opt", m).forEach(b => {
+      $$(".pp-opt[data-pp]", m).forEach(b => {
         const i = order.indexOf(b.dataset.pp);
         b.setAttribute("aria-pressed", String(i >= 0));
         b.querySelector(".pp-rank").textContent = i >= 0 ? i + 1 : "";
@@ -255,10 +265,27 @@
         : `<span class="hint">还没选游戏</span>`;
     };
     paint();
+    // 能讲规的游戏：已在名单上的（按称呼）显示为已挂名；新勾的提交时添加
+    const teachPick = new Set();
+    const teachIds = data.games.filter(g => g.active).map(g => g.id);
+    const paintTeach = () => {
+      const listed = new Set(rosterGames($("#f-name", m).value));
+      $("#tpOpts", m).innerHTML = [...new Set([...teachIds, ...listed])]
+        .filter(id => game(id))
+        .map(id => (listed.has(id) ? `<button class="pp-opt" type="button" aria-pressed="true" disabled title="已挂名">${esc(gname(id))}<small>已挂名</small></button>` : `<button class="pp-opt" type="button" data-tp="${esc(id)}" aria-pressed="${teachPick.has(id)}">${esc(gname(id))}</button>`))
+        .join("");
+    };
+    paintTeach();
+    $("#f-name", m).addEventListener("input", paintTeach);
     m.addEventListener("click", e => {
       const opt = e.target.closest("[data-pp]");
       const up = e.target.closest("[data-pp-up]");
-      if (opt) {
+      const tp = e.target.closest("[data-tp]");
+      if (tp) {
+        if (teachPick.has(tp.dataset.tp)) teachPick.delete(tp.dataset.tp);
+        else teachPick.add(tp.dataset.tp);
+        paintTeach();
+      } else if (opt) {
         const i = order.indexOf(opt.dataset.pp);
         if (i >= 0) order.splice(i, 1);
         else order.push(opt.dataset.pp);
@@ -276,7 +303,8 @@
       if (!order.length) return B.toast("至少选一款游戏", "error");
       const pin = String(f.get("pin") || "");
       if (pin && !/^\d{4}$/.test(pin)) return B.toast("找回码需要是 4 位数字", "error");
-      const body = { name: f.get("name"), prefs: [...order], level: f.get("level") === "" ? null : Number(f.get("level")), teach: f.get("teach") === "on", checkedIn: f.get("checkedIn") === "on", note: f.get("note") };
+      const body = { name: f.get("name"), prefs: [...order], level: f.get("level") === "" ? null : Number(f.get("level")), teachGames: [...teachPick], checkedIn: f.get("checkedIn") === "on", note: f.get("note") };
+      if (body.level === 0 && teachPick.size) return B.toast("熟悉程度选了「新手」时不会挂讲规名，请改熟悉程度或取消勾选", "error");
       if (v.rounds.length > 1) {
         body.rounds = f.getAll("r").map(Number);
         if (!body.rounds.length) return B.toast("至少参加一轮", "error");
@@ -302,7 +330,7 @@
     const multi = rounds.length > 1;
     const player = p => {
       const s = byId.get(p.id);
-      const marks = `${p.teach || p.level === 2 ? " 🎓" : ""}${p.level === 0 ? " 🌱" : ""}`;
+      const marks = `${p.teach ? " 🎓" : ""}${p.level === 0 ? " 🌱" : ""}`;
       return `<div class="aplayer ${s?.checkedIn ? "in" : ""}"><span>${esc(p.name)}${marks}${p.rank > 1 ? ` <small class="rank">志愿${p.rank}</small>` : ""}</span><label class="check"><input type="checkbox" data-checkin="${esc(p.id)}" ${s?.checkedIn ? "checked" : ""} aria-label="${esc(p.name)} 签到">签到</label></div>`;
     };
     const blocks = r
@@ -312,7 +340,7 @@
           .sort((x, y) => y.a.count - x.a.count)
           .map(({ g, a }) => `<div class="alloc-game" style="--c:${B.color(g)}"><h3><span class="gi">${B.icon(g, 20)}</span>${esc(g.name)}</h3>
           <p class="sub">每桌 ${a.size} 人 · ${a.copies} 套 · 最少 ${a.min} 人 · 本轮 ${a.count} 人</p>
-          ${a.tables.map(t => `<div class="atable"><div class="atable-h"><b>第 ${t.no} 桌</b><span>${t.players.length} 人${t.short ? ` · 差 ${t.short} 人` : ""}</span></div>${t.players.map(player).join("")}</div>`).join("")}</div>`)
+          ${a.tables.map(t => `<div class="atable"><div class="atable-h"><b>第 ${t.no} 桌</b><span>${t.players.length} 人${t.short ? ` · 差 ${t.short} 人` : ""}</span></div>${t.players.map(player).join("")}${B.teachNoteHtml(r, g.id, t, teachOpts(g.id))}</div>`).join("")}</div>`)
       : [];
     // 没成桌的人：列出前几个志愿，方便现场协调
     const loose = r && r.unassigned.length
@@ -403,7 +431,8 @@
         .map(
           g => `<div class="grow ${g.active ? "" : "off"}" style="--c:${B.color(g)}"><span class="gi">${B.icon(g, 22)}</span>
         <div><b>${esc(g.name)}</b> <span class="tag">${esc(g.group)}</span> <span class="tag">${esc(g.category)}</span>${g.active ? "" : ` <span class="tag tag-wait">已停用</span>`}
-        <small>${g.min}–${g.max} 人 · ${g.minutes} 分钟 · ${g.copies} 套 · 每桌 ${g.tableSize || g.max} 人 · ${g.video ? `视频 ${esc(g.video.bvid)}` : "无教学视频"}</small></div>
+        <small>${g.min}–${g.max} 人 · ${g.minutes} 分钟 · ${g.copies} 套 · 每桌 ${g.tableSize || g.max} 人 · ${g.video ? `视频 ${esc(g.video.bvid)}` : "无教学视频"}</small>
+        <div class="g-teach"><span class="g-teach-h">🎓 讲规名单</span>${rosterOf(g.id).map(t => `<span class="tchip" title="${esc(`${{ self: "本人在游戏库挂名", signup: "报名时挂名", admin: "管理员代挂" }[t.by] || ""} · ${fmtTime(t.createdAt)}`)}">${esc(t.name)}<button type="button" data-adm-teach-del="${esc(t.id)}" data-name="${esc(t.name)}" data-game="${esc(g.name)}" aria-label="删除 ${esc(t.name)} 的讲规挂名">×</button></span>`).join("") || `<span class="hint">暂无</span>`}<button class="btn btn-xs btn-ghost" type="button" data-adm-teach-add="${esc(g.id)}">＋ 代挂名</button></div></div>
         <div class="acts"><button class="btn btn-xs" type="button" data-edit-game="${esc(g.id)}">编辑</button> <button class="btn btn-xs" type="button" data-toggle-game="${esc(g.id)}">${g.active ? "停用" : "启用"}</button> <button class="btn btn-xs btn-danger" type="button" data-del-game="${esc(g.id)}">删除</button></div></div>`,
         )
         .join("")}</div>`;
@@ -697,6 +726,19 @@
         } catch (error) {
           B.toast(error.message, "error");
         }
+      } else if (d.admTeachDel) {
+        if (await B.confirmDialog({ title: `删除「${d.name}」的讲规挂名？`, text: `${d.game}。删除后不再出现在讲规名单里（本人可以重新挂名）。`, ok: "删除", danger: true })) await guard(() => call(`/api/teachers/${encodeURIComponent(d.admTeachDel)}`, { method: "DELETE" }), "已删除");
+      } else if (d.admTeachAdd) {
+        const g = game(d.admTeachAdd);
+        const m = B.openModal(`<h2 id="modalTitle" class="modal-title">代挂讲规名 · ${esc(g?.name || "")}</h2>
+          <form id="admTeachForm" class="form-grid"><div class="field span-all"><label class="label" for="admTeachName">称呼 <small>请和对方报名用的称呼一致</small></label><input class="input" id="admTeachName" maxlength="20" required></div>
+          <div class="modal-actions span-all"><button class="btn btn-ghost" type="button" data-close>取消</button><button class="btn btn-primary" type="submit">挂名</button></div></form>`);
+        setTimeout(() => $("#admTeachName", m).focus(), 50);
+        $("#admTeachForm", m).addEventListener("submit", async ev => {
+          ev.preventDefault();
+          const res = await guard(() => call("/api/teachers", { method: "POST", body: { gameId: d.admTeachAdd, name: $("#admTeachName", m).value } }), "已挂名");
+          if (res) B.closeModal();
+        });
       } else if (d.act === "new-game") openGame(null);
       else if (d.edit) openSignup(d.edit);
       else if (d.del) {

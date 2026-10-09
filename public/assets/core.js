@@ -4,6 +4,7 @@
 
   const STATE_CACHE = "bgc.state.v5";
   const MINE_KEY = "bgc.mine.v1";
+  const TEACH_KEY = "bgc.teach.v1";
   const NAME_KEY = "bgc.lastName";
   const WEEKDAYS = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"];
   const LEVELS = ["新手", "玩过一些", "老手能教"];
@@ -14,6 +15,12 @@
   const $ = (sel, root = document) => root.querySelector(sel);
   const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
   const esc = v => String(v ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+  // 与服务端相同的称呼比较规则：去掉零宽 / 控制字符，忽略大小写和空格
+  const INVISIBLE = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F­᠎​-‏‪-‮⁠-⁤⁦-⁯﻿]/g;
+  const nameKey = v => String(v ?? "").replace(INVISIBLE, "").trim().replace(/\s+/g, " ").slice(0, 40).normalize("NFKC").toLocaleLowerCase().replace(/\s+/g, "");
+  const randHex = n => Array.from(crypto.getRandomValues(new Uint8Array(n)), b => b.toString(16).padStart(2, "0")).join("");
+  const B64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
+  const randToken = () => Array.from(crypto.getRandomValues(new Uint8Array(32)), b => B64[b & 63]).join("");
   const store = {
     get(key, fallback) {
       try {
@@ -159,6 +166,7 @@
     return changed || snap.sessions.length !== before;
   }
   function emit() {
+    refreshTeachSections();
     listeners.forEach(fn => {
       try {
         fn(snapshot);
@@ -255,6 +263,153 @@
   function updateMine(id, patch) {
     store.set(MINE_KEY, getMine().map(x => (x.id === id ? { ...x, ...patch } : x)));
   }
+
+  // ---------- 讲规名单（长期有效；这台设备挂的名可以自己撤下） ----------
+  const teachersOf = gid => {
+    const all = snapshot?.teachers;
+    return all && Object.prototype.hasOwnProperty.call(all, gid) && Array.isArray(all[gid]) ? all[gid] : [];
+  };
+  function getMyTeach() {
+    const list = store.get(TEACH_KEY, []);
+    return Array.isArray(list) ? list.filter(x => x && x.id && x.token && x.gameId) : [];
+  }
+  function saveMyTeach(entry) {
+    store.set(TEACH_KEY, [{ ...entry, savedAt: Date.now() }, ...getMyTeach().filter(x => x.id !== entry.id)].slice(0, 100));
+  }
+  function removeMyTeach(id) {
+    store.set(TEACH_KEY, getMyTeach().filter(x => x.id !== id));
+  }
+  // 设备记录不因为某次快照里暂时没有就删（管理员恢复旧版本后可能又回来）；显示时只认还在名单上的。
+  // 撤下时服务器回 404 才删（见 teachDel），总数最多保留 100 条
+  // 这台设备挂的、而且还在名单上的
+  function myTeachFor(gid) {
+    const ids = new Set(teachersOf(gid).map(t => t.id));
+    return getMyTeach().filter(x => x.gameId === gid && ids.has(x.id));
+  }
+  // 某个称呼挂了哪些游戏
+  function rosterGamesFor(name) {
+    const k = nameKey(name);
+    if (!k || !snapshot?.teachers) return [];
+    return Object.entries(snapshot.teachers)
+      .filter(([, list]) => list.some(t => nameKey(t.name) === k))
+      .map(([gid]) => gid);
+  }
+  const teachNames = (list, max = 3) => list.slice(0, max).map(t => esc(t.name)).join("、") + (list.length > max ? ` 等 ${list.length} 人` : "");
+  // 游戏卡片上的一行：谁会讲 + 挂名 / 撤下
+  function teachRowHtml(g) {
+    const list = teachersOf(g.id);
+    const mine = myTeachFor(g.id);
+    return `<div class="gcard-teach"><span class="gteach-txt">🎓 ${list.length ? `会讲规：${teachNames(list)}` : "还没人挂名讲规"}</span>${
+      mine.length ? `<button class="teach-btn on" type="button" data-teach-off="${esc(g.id)}">已挂名 · 撤下</button>` : `<button class="teach-btn" type="button" data-teach-add="${esc(g.id)}">我能讲 · 挂名</button>`
+    }</div>`;
+  }
+  // 游戏详情里的完整名单
+  function teachSectionHtml(g) {
+    const list = teachersOf(g.id);
+    const mine = new Set(myTeachFor(g.id).map(x => x.id));
+    return `<h3 class="sec-h">🎓 会讲规的同学${list.length ? ` <small>${list.length} 人</small>` : ""}</h3>
+      ${list.length ? `<ul class="teach-list">${list.map(t => `<li><span>${esc(t.name)}</span>${mine.has(t.id) ? `<button class="teach-x" type="button" data-teach-del="${esc(t.id)}">撤下</button>` : ""}</li>`).join("")}</ul>` : `<p class="fineprint">还没有人挂名。会讲的话挂个名，帮帮想学的同学。</p>`}
+      <p class="fineprint">想提前学规则，可以在群里问问他们；活动当晚哪桌没人会讲，也可以请他们过去讲几分钟。</p>
+      <button class="btn btn-sm" type="button" data-teach-add="${esc(g.id)}">我能讲 · 挂名</button>`;
+  }
+  function refreshTeachSections() {
+    $$("[data-teach-sec]").forEach(el => {
+      const g = gameById(el.dataset.teachSec);
+      if (g) el.innerHTML = teachSectionHtml(g);
+    });
+  }
+  // 某一桌的讲规情况（报名页名单 / 我的报名 / 后台分桌共用；后台有自己的数据，传 gameName / roster 进来）
+  function teachNote(round, gid, table, { gameName = id => gameById(id)?.name || "", roster = teachersOf(gid) } = {}) {
+    const here = table.players.filter(p => p.teach);
+    if (here.length) return { tone: "ok", html: `🎓 本桌有人会讲：${here.map(p => esc(p.name)).join("、")}` };
+    const helpers = round.games[gid]?.helpers || [];
+    if (helpers.length)
+      return { tone: "warn", html: `🎓 本桌还没人会讲 · 本轮到场会讲的：${helpers.slice(0, 4).map(h => `<b>${esc(h.name)}</b>（${h.at ? `${esc(gameName(h.at))} ${h.table} 桌` : "这轮没上桌"}）`).join("、")}` };
+    return { tone: "idle", html: `🎓 本桌还没人会讲，到场的人里也没有挂名会讲的 · 可以先看教学视频${roster.length ? `，或在群里问挂名的：${teachNames(roster)}` : ""}` };
+  }
+  const teachNoteHtml = (round, gid, table, opts) => {
+    const n = teachNote(round, gid, table, opts);
+    return `<p class="teach-note teach-${n.tone}">${n.html}</p>`;
+  };
+  function teachAdd(gid, reopen) {
+    const g = gameById(gid);
+    if (!g) return;
+    const m = openModal(`<h2 id="modalTitle" class="modal-title">挂名讲规 · ${esc(g.name)}</h2>
+      <p class="modal-text">用下面的称呼挂在《${esc(g.name)}》的讲规名单上，长期有效，随时可以撤下。想提前学规则的同学可能会在群里问你；活动当晚哪桌没人会讲，也可能请你过去讲几分钟。</p>
+      <form id="teachForm" class="teach-form" novalidate>
+        <label class="label" for="teachName">你的称呼 <small>请和报名时用的一样，当晚系统才认得出你</small></label>
+        <input class="input" id="teachName" maxlength="20" autocomplete="nickname" required value="${esc(store.get(NAME_KEY, ""))}">
+        <p class="err" id="teachErr" role="alert"></p>
+        <div class="modal-actions"><button class="btn btn-ghost" type="button" data-close>取消</button><button class="btn btn-primary" type="submit" id="teachBtn">挂名</button></div>
+      </form>`);
+    const input = $("#teachName", m);
+    setTimeout(() => input.focus(), 50);
+    let pending = null;
+    $("#teachForm", m).addEventListener("submit", async e => {
+      e.preventDefault();
+      const name = input.value.trim();
+      const err = $("#teachErr", m);
+      if (!name) {
+        err.textContent = "请填写称呼";
+        return;
+      }
+      // 先把凭证存到设备上：网络中断时重试不会重复挂名，也不会丢了撤下用的凭证
+      if (!pending || pending.name !== name) pending = { name, id: `t${randHex(6)}`, token: randToken() };
+      saveMyTeach({ id: pending.id, token: pending.token, gameId: gid, name, pending: true });
+      const btn = $("#teachBtn", m);
+      btn.disabled = true;
+      try {
+        const res = await api("/api/teachers", { method: "POST", body: { gameId: gid, name, id: pending.id, token: pending.token } });
+        saveMyTeach({ id: res.teacher.id, token: pending.token, gameId: gid, name: res.teacher.name });
+        if (!store.get(NAME_KEY, "")) store.set(NAME_KEY, name);
+        closeModal();
+        setSnapshot(res.state);
+        toast(`已挂名《${g.name}》，谢谢你！`, "ok");
+        if (reopen) openGame(g, lastGameOpts);
+      } catch (error) {
+        if (error.status >= 400 && error.status < 500) removeMyTeach(pending.id);
+        err.textContent = error.status ? error.message : "网络中断，没能确认是否挂名成功，可以再点一次（不会重复挂名）";
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  }
+  async function teachDel(id, reopen) {
+    const mine = getMyTeach().find(x => x.id === id);
+    if (!mine) return toast("这台设备上没有这条挂名的记录");
+    const g = gameById(mine.gameId);
+    const ok = await confirmDialog({ title: "撤下讲规挂名？", text: `${mine.name} · ${g?.name || ""}。撤下后就不在讲规名单里了，以后可以随时再挂。`, ok: "撤下", danger: true });
+    if (ok) {
+      try {
+        const res = await api(`/api/teachers/${encodeURIComponent(id)}`, { method: "DELETE", token: mine.token });
+        removeMyTeach(id);
+        setSnapshot(res.state);
+        toast("已撤下", "ok");
+      } catch (error) {
+        if (error.status === 404) {
+          removeMyTeach(id);
+          refresh().catch(() => {});
+        }
+        toast(error.message, "error");
+      }
+    }
+    if (reopen && g) openGame(g, lastGameOpts);
+  }
+  document.addEventListener("click", e => {
+    const add = e.target.closest("[data-teach-add]");
+    const off = e.target.closest("[data-teach-off]");
+    const del = e.target.closest("[data-teach-del]");
+    if (!add && !off && !del) return;
+    e.preventDefault();
+    const inDetail = Boolean(e.target.closest("[data-teach-sec]"));
+    if (add) teachAdd(add.dataset.teachAdd, inDetail);
+    else if (del) teachDel(del.dataset.teachDel, inDetail);
+    else {
+      const mine = myTeachFor(off.dataset.teachOff);
+      if (mine.length === 1) teachDel(mine[0].id, false);
+      else openGame(gameById(off.dataset.teachOff));
+    }
+  });
   // 在快照里找到某条报名的分桌结果
   // 返回这条报名在每一轮的结果：[{round, label, kind:'seat'|'none'|'skip', gameId, table, rank, short}]
   function placementOf(session, signupId) {
@@ -444,8 +599,11 @@
     return `<ol class="rules">${lines.map(l => `<li>${esc(l.replace(/^\d+[.、．]\s*/, ""))}</li>`).join("")}</ol>`;
   }
 
-  function openGame(g, { signupHref = "/signup", showSignup = true } = {}) {
+  let lastGameOpts = {};
+  function openGame(g, opts = {}) {
     if (!g) return;
+    lastGameOpts = opts;
+    const { signupHref = "/signup", showSignup = true } = opts;
     const html = `<div class="gdetail" style="--c:${color(g)}">
       <header class="gdetail-head">
         <span class="gdetail-icon">${icon(g, 34)}</span>
@@ -456,6 +614,7 @@
       ${g.notice ? `<p class="notice-line">⚠ ${esc(g.notice)}</p>` : ""}
       <section><h3 class="sec-h">▶ 教学视频</h3>${videoBlock(g)}</section>
       <section><h3 class="sec-h">规则速览</h3>${rulesHtml(g.rules)}<p class="fineprint">入门速览，细节以盒内说明书和现场讲解为准。</p></section>
+      <section class="gd-teach" data-teach-sec="${esc(g.id)}">${teachSectionHtml(g)}</section>
       ${showSignup ? `<div class="modal-actions sticky-actions"><button class="btn btn-ghost" type="button" data-close>关闭</button><a class="btn btn-primary" href="${signupHref}?game=${encodeURIComponent(g.id)}">报名玩这个 →</a></div>` : ""}
     </div>`;
     openModal(html, { wide: true, className: "modal-game" });
@@ -471,6 +630,7 @@
       <div class="gcard-meta"><span class="chip">${esc(g.category)}</span><span class="chip">👥 ${g.min}–${g.max}</span><span class="chip">⏱ ${g.minutes}′</span><span class="chip">${diffPips(g.difficulty)}</span></div>
       <p class="gcard-intro">${esc(g.intro)}</p>
       ${g.notice ? `<p class="notice-line">⚠ ${esc(g.notice)}</p>` : ""}
+      ${teachRowHtml(g)}
       <div class="gcard-foot">${g.video ? `<button class="btn btn-sm btn-ghost" type="button" data-open="${esc(g.id)}">▶ 教学视频</button>` : `<button class="btn btn-sm btn-ghost" type="button" data-open="${esc(g.id)}">规则速览</button>`}<a class="btn btn-sm" href="${link}">报名</a></div>
     </article>`;
   }
@@ -582,6 +742,18 @@
     WEEKDAYS,
     GROUPS: ["身份类", "桌游", "特色"],
     NAME_KEY,
+    nameKey,
+    randHex,
+    randToken,
+    teachersOf,
+    getMyTeach,
+    saveMyTeach,
+    removeMyTeach,
+    myTeachFor,
+    rosterGamesFor,
+    teachNames,
+    teachNote,
+    teachNoteHtml,
     toast,
     openModal,
     closeModal,
