@@ -1198,18 +1198,20 @@ const server = http.createServer(async (req, res) => {
 
 // 保持清醒：Render 免费实例闲置 15 分钟就休眠，再次打开要等 Render 重新分配机器（实测 1–8 分钟）。
 // 醒着的时候每 5 分钟访问一次自己的公网地址（Render 自动提供 RENDER_EXTERNAL_URL），它就不会休眠。
-// 北京时间 2:00–7:00 不访问、允许休眠，每月约 590 小时，留出免费额度（750 小时）的余量。KEEPALIVE=0 可关闭。
+// 全天不休眠：一个月最多 744 小时，在免费额度（每个工作区每月 750 小时）以内——前提是工作区里只有这一个免费服务。
+// KEEPALIVE=0 可关闭；KEEPALIVE_QUIET="2-7" 这样的值可以让北京时间 2:00–7:00 暂停（以后免费服务多了再用）。
 const KEEPALIVE_URL = String(process.env.KEEPALIVE_URL || process.env.RENDER_EXTERNAL_URL || "").replace(/\/+$/, "");
 const KEEPALIVE_MS = 5 * 60 * 1000;
 function startKeepAlive() {
   if (!KEEPALIVE_URL || process.env.KEEPALIVE === "0") return;
+  const quiet = /^(\d{1,2})-(\d{1,2})$/.exec(String(process.env.KEEPALIVE_QUIET || ""));
   const ping = () => {
     const hour = new Date(Date.now() + 8 * 3600 * 1000).getUTCHours();
-    if (hour >= 2 && hour < 7) return;
+    if (quiet && hour >= Number(quiet[1]) && hour < Number(quiet[2])) return;
     fetch(`${KEEPALIVE_URL}/healthz`, { headers: { "User-Agent": "kaizhuo-keepalive" }, signal: AbortSignal.timeout(60000) }).catch(err => console.warn("[keepalive]", err.message));
   };
   setInterval(ping, KEEPALIVE_MS).unref();
-  console.log(`[keepalive] 每 5 分钟访问 ${KEEPALIVE_URL}/healthz（北京时间 2:00–7:00 暂停）`);
+  console.log(`[keepalive] 每 5 分钟访问 ${KEEPALIVE_URL}/healthz${quiet ? `（北京时间 ${quiet[1]}:00–${quiet[2]}:00 暂停）` : "（全天）"}`);
 }
 
 loadStatic();
