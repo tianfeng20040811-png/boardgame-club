@@ -1196,9 +1196,28 @@ const server = http.createServer(async (req, res) => {
   }
 });
 
+// 保持清醒：Render 免费实例闲置 15 分钟就休眠，再次打开要等 Render 重新分配机器（实测 1–8 分钟）。
+// 醒着的时候每 5 分钟访问一次自己的公网地址（Render 自动提供 RENDER_EXTERNAL_URL），它就不会休眠。
+// 北京时间 2:00–7:00 不访问、允许休眠，每月约 590 小时，留出免费额度（750 小时）的余量。KEEPALIVE=0 可关闭。
+const KEEPALIVE_URL = String(process.env.KEEPALIVE_URL || process.env.RENDER_EXTERNAL_URL || "").replace(/\/+$/, "");
+const KEEPALIVE_MS = 5 * 60 * 1000;
+function startKeepAlive() {
+  if (!KEEPALIVE_URL || process.env.KEEPALIVE === "0") return;
+  const ping = () => {
+    const hour = new Date(Date.now() + 8 * 3600 * 1000).getUTCHours();
+    if (hour >= 2 && hour < 7) return;
+    fetch(`${KEEPALIVE_URL}/healthz`, { headers: { "User-Agent": "kaizhuo-keepalive" }, signal: AbortSignal.timeout(60000) }).catch(err => console.warn("[keepalive]", err.message));
+  };
+  setInterval(ping, KEEPALIVE_MS).unref();
+  console.log(`[keepalive] 每 5 分钟访问 ${KEEPALIVE_URL}/healthz（北京时间 2:00–7:00 暂停）`);
+}
+
 loadStatic();
 boot().then(() => {
-  server.listen(PORT, () => console.log(`开桌已启动：http://localhost:${PORT}  (build ${BUILD})`));
+  server.listen(PORT, () => {
+    console.log(`开桌已启动：http://localhost:${PORT}  (build ${BUILD})`);
+    startKeepAlive();
+  });
 });
 
 module.exports = { server };

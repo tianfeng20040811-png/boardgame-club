@@ -74,7 +74,7 @@
 
 Render 免费实例闲置 15 分钟后会休眠，下一位访客要等 30–60 秒唤醒（页面会显示“服务器正在唤醒”提示；同一台设备第二次打开会先用缓存秒开）。
 
-如果仓库是 **公开** 的，可以启用仓库里自带的 `.github/workflows/keepalive.yml`：在 GitHub 仓库 *Settings → Secrets and variables → Actions → Variables* 新建变量 `KEEPALIVE_URL`，值为网站地址（如 `https://boardgame-club.onrender.com`）。它会在每天 08:00–24:00（UTC+8）每 10 分钟访问一次 `/healthz`。私有仓库会消耗 GitHub Actions 免费分钟数，不建议开启。
+**防休眠（已自动生效）**：服务器醒着时每 5 分钟访问一次自己的公网地址（Render 自动提供的 `RENDER_EXTERNAL_URL`），免费实例就不会因闲置而休眠；北京时间 2:00–7:00 暂停，允许休眠以节省免费额度（每月约 590 小时，免费额度 750 小时）。环境变量 `KEEPALIVE=0` 可关闭。仓库里的 `.github/workflows/keepalive.yml` 也会定时访问一次，用来在早上把它叫醒，但 GitHub 的定时任务经常大幅延后，只能算辅助。想要早上也秒开，可以在 cron-job.org 或 UptimeRobot 免费建一个每 5 分钟访问 `/healthz` 的任务。
 
 ## 本地运行
 
