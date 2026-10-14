@@ -945,6 +945,8 @@ function baseHeaders(res) {
   res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
   // 社团内部使用：页面和图片（含动画海报素材）都不让搜索引擎收录
   res.setHeader("X-Robots-Tag", "noindex, nofollow, noimageindex");
+  // 标记“这是我们自己的服务器回的”：免费实例唤醒期间 Render 会先回它自己的加载页，页面和离线缓存靠这个区分
+  res.setHeader("X-App", "kaizhuo");
 }
 
 function serveStatic(req, res, pathname, query) {

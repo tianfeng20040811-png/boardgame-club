@@ -88,7 +88,7 @@
       el.id = "wakeBanner";
       el.className = "wake-banner";
       el.setAttribute("role", "status");
-      el.innerHTML = `<span class="wake-dot"></span><span><strong>服务器正在唤醒</strong><small>免费服务器闲置后会休眠，首次访问约需 30–60 秒，请稍候 <b id="wakeSecs" aria-hidden="true">0</b><span aria-hidden="true">s</span></small></span>`;
+      el.innerHTML = `<span class="wake-dot"></span><span><strong>服务器正在唤醒</strong><small>免费服务器闲置后会休眠，唤醒约需 1–3 分钟，页面会自动刷新数据 <b id="wakeSecs" aria-hidden="true">0</b><span aria-hidden="true">s</span></small></span>`;
       document.body.appendChild(el);
     }
     if (!el) return;
@@ -116,7 +116,17 @@
     pending++;
     if (!wakeTimer) wakeTimer = setTimeout(() => wakeBanner(true), 2500);
     try {
-      const res = await fetch(path, { method, headers, body: body === undefined ? undefined : JSON.stringify(body), signal: ctrl.signal, cache: "no-store" });
+      const started = Date.now();
+      let res;
+      for (;;) {
+        res = await fetch(path, { method, headers, body: body === undefined ? undefined : JSON.stringify(body), signal: ctrl.signal, cache: "no-store" });
+        // 服务器休眠唤醒期间，Render 可能先回它自己的“加载中”网页而不是我们的 JSON：读取类请求隔几秒自动重试，
+        // 提交类请求不自动重发（交给用户再点一次；报名 / 挂名本身带了防重复的 id）
+        const fromUs = res.headers.get("X-App") === "kaizhuo" || (res.headers.get("content-type") || "").includes("json");
+        if (fromUs || !String(path).startsWith("/api/")) break;
+        if (method !== "GET" || Date.now() - started > timeout - 8000) throw Object.assign(new Error("服务器正在唤醒，请稍等几十秒再试一次"), { status: 503 });
+        await new Promise(r => setTimeout(r, 4000));
+      }
       const type = res.headers.get("content-type") || "";
       const data = type.includes("json") ? await res.json() : await res.text();
       if (!res.ok) {

@@ -26,17 +26,19 @@ self.addEventListener("fetch", event => {
   if (url.origin !== location.origin || url.pathname.startsWith("/api/") || url.pathname.startsWith("/admin") || url.pathname === "/healthz") return;
   if (req.mode === "navigate") {
     const key = pageKey(url);
+    // 服务器休眠唤醒期间，Render 会先回它自己的“加载中”页面（没有 X-App 标记）：不缓存它；有缓存就先显示缓存的页面
+    const ours = res => Boolean(res && res.ok && res.headers.get("X-App") === "kaizhuo");
     event.respondWith(
       caches.open(CACHE).then(async cache => {
         const network = fetch(req).then(res => {
-          if (res && res.ok && res.type === "basic") cache.put(key, res.clone());
+          if (ours(res) && res.type === "basic") cache.put(key, res.clone());
           return res;
         });
         const cached = await cache.match(key);
         if (!cached) return network;
         event.waitUntil(network.catch(() => {}));
         const timeout = new Promise(resolve => setTimeout(() => resolve(cached), 2500));
-        return Promise.race([network.catch(() => cached), timeout]);
+        return Promise.race([network.then(res => (ours(res) ? res : cached)).catch(() => cached), timeout]);
       }),
     );
     return;
